@@ -1,5 +1,5 @@
+import { getIPFromIpipnetAPI } from '@/api/geoip'
 import { fetchGeoPoint, type GeoPoint } from '@/api/geoip-map'
-import { networkChinaInfo, networkGlobalInfo, refreshNetworkInfo } from '@/composables/networkInfo'
 import { getFinalOutboundName, resolveProxyHopGeoPoint } from '@/helper/proxyRouteResolver'
 import { activeConnections } from '@/store/connections'
 import { activeBackend } from '@/store/setup'
@@ -29,29 +29,29 @@ let stopWorldTrafficWatch: WatchStopHandle | null = null
 
 const refreshPublicEgress = async () => {
   try {
-    await refreshNetworkInfo()
+    const ipip = await getIPFromIpipnetAPI()
+    const ip = ipip?.data?.ip
 
-    const preferred = networkChinaInfo.value?.ip || networkGlobalInfo.value?.ip
-    if (!preferred) {
-      worldTrafficError.value = '网络信息卡片未获取到可用 IP'
+    if (!ip) {
+      worldTrafficError.value = '通过 ipip.net 未获取到起点 IP'
       publicEgress.value = null
       return
     }
 
-    const geo = await fetchGeoPoint(preferred)
+    const geo = await fetchGeoPoint(ip)
     if (geo) {
       publicEgress.value = {
         ...geo,
-        source: networkChinaInfo.value?.ip ? 'ipip.net' : 'geoip',
+        source: 'ipip.net',
       }
       worldTrafficError.value = ''
       return
     }
 
-    worldTrafficError.value = `网络信息卡片已获取 IP（${preferred}），但地理定位失败`
+    worldTrafficError.value = `通过 ipip.net 获取到起点 IP（${ip}），但地理定位失败`
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    worldTrafficError.value = `复用网络信息卡片获取起点失败：${message}`
+    worldTrafficError.value = `通过 ipip.net 获取起点失败：${message}`
     publicEgress.value = null
   }
 }
