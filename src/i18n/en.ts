@@ -278,8 +278,6 @@ const en = {
   providerTrafficOverview: 'Provider Traffic Overview',
   topologyCharts: 'Topology Charts',
   worldTrafficMap: 'World Traffic Flight Map',
-  worldTrafficMapNoBaseMap:
-    'The map pipeline is wired up, but the world basemap has not been localized into the project yet, so rendering is temporarily disabled until a local world geojson is added.',
   connectionHistory: 'Connection History',
   ruleHitCountCard: 'Rule Hit/Miss Statistics',
   ruleHitChart: 'Hit Statistics',

@@ -24,7 +24,7 @@
         v-else-if="!routeList.length"
         class="text-base-content/50 absolute inset-0 flex items-center justify-center px-6 text-center text-sm"
       >
-        {{ $t('worldTrafficMapNoBaseMap') }}
+        {{ $t('noData') }}
       </div>
     </div>
   </div>
@@ -198,8 +198,9 @@ const options = computed(() => {
 let chart: echarts.ECharts | null = null
 
 const ensureWorldMap = async () => {
-  if (echarts.getMap('world')) return false
-  return false
+  if (echarts.getMap('world')) return
+  const worldJson = await import('@/assets/maps/world.json')
+  echarts.registerMap('world', worldJson.default as never)
 }
 
 onMounted(async () => {

@@ -281,8 +281,6 @@ const ru: LANG_MESSAGE = {
   providerTrafficOverview: 'Обзор трафика провайдера',
   topologyCharts: 'Топологические графики',
   worldTrafficMap: 'Карта мировых потоков',
-  worldTrafficMapNoBaseMap:
-    'Каркас карты уже подключён, но локальный ресурс мировой карты ещё не добавлен в проект, поэтому базовая карта пока не рендерится.',
   connectionHistory: 'История подключений',
   ruleHitCountCard: 'Статистика попаданий/промахов правил',
   ruleHitChart: 'Статистика попаданий',

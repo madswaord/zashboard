@@ -43,13 +43,15 @@
     "sort-package-json": "^3.6.1",
     "subsetted-fonts": "^1.0.4",
     "tippy.js": "^6.3.7",
+    "topojson-client": "^3.1.0",
     "uuid": "^13.0.0",
     "vite-plugin-pwa": "^1.2.0",
     "vue": "^3.5.28",
     "vue-i18n": "^11.2.8",
     "vue-json-pretty": "^2.6.0",
     "vue-router": "^5.0.3",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.1",
