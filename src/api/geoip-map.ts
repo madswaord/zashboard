@@ -162,6 +162,11 @@ const fetchGeoPointInner = async (ip: string): Promise<GeoPoint | null> => {
   }
 }
 
+export const fetchGeoPointForEgress = async (ip: string): Promise<GeoPoint | null> => {
+  if (!ip) return null
+  return (await fromIPWhois(ip)) || (await fromIPApiIs(ip)) || (await fromIpsb(ip))
+}
+
 export const fetchGeoPoint = async (ip: string): Promise<GeoPoint | null> => {
   if (!ip) return null
   const cache = readCache(ip)

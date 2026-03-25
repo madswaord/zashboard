@@ -1,5 +1,5 @@
 import { getIPFromIpipnetAPI } from '@/api/geoip'
-import { fetchGeoPoint, type GeoPoint } from '@/api/geoip-map'
+import { fetchGeoPoint, fetchGeoPointForEgress, type GeoPoint } from '@/api/geoip-map'
 import { getFinalOutboundName, resolveProxyHopGeoPoint } from '@/helper/proxyRouteResolver'
 import { activeConnections } from '@/store/connections'
 import { activeBackend } from '@/store/setup'
@@ -38,7 +38,7 @@ const refreshPublicEgress = async () => {
       return
     }
 
-    const geo = await fetchGeoPoint(ip)
+    const geo = await fetchGeoPointForEgress(ip)
     if (geo) {
       publicEgress.value = {
         ...geo,
