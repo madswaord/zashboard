@@ -61,12 +61,6 @@ const extractIPv4 = (text: string) => {
 
 const providers: (() => Promise<PublicIPResult>)[] = [
   async () => {
-    const text = await readTextWithTimeout('https://4.ipw.cn', 5000)
-    const ip = extractIPv4(text)
-    if (!ip) throw new Error('4.ipw.cn missing ip')
-    return { ip, source: '4.ipw.cn' }
-  },
-  async () => {
     const data = await fetchJSON<{
       data?: {
         ip?: string
@@ -75,6 +69,12 @@ const providers: (() => Promise<PublicIPResult>)[] = [
     const ip = data?.data?.ip
     if (!ip) throw new Error('ipip.net missing ip')
     return { ip, source: 'ipip.net' }
+  },
+  async () => {
+    const text = await readTextWithTimeout('https://4.ipw.cn', 5000)
+    const ip = extractIPv4(text)
+    if (!ip) throw new Error('4.ipw.cn missing ip')
+    return { ip, source: '4.ipw.cn' }
   },
 ]
 
