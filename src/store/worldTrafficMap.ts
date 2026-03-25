@@ -80,21 +80,6 @@ const buildBaseRoute = (
   }
 }
 
-const toPacificCenteredLongitude = (lng: number) => {
-  let result = lng + 30
-  if (result > 180) result -= 360
-  if (result < -180) result += 360
-  return result
-}
-
-const applyPacificCenter = (point: GeoPoint | null) => {
-  if (!point) return null
-  return {
-    ...point,
-    longitude: toPacificCenteredLongitude(point.longitude),
-  }
-}
-
 const hydrateRoute = async (connection: (typeof activeConnections.value)[number]) => {
   if (hydrationMap.has(connection.id)) {
     return hydrationMap.get(connection.id)
@@ -102,21 +87,19 @@ const hydrateRoute = async (connection: (typeof activeConnections.value)[number]
 
   const promise = (async () => {
     const current = worldTrafficRoutes.value[connection.id] || buildBaseRoute(connection)
-    current.source = applyPacificCenter(publicEgress.value)
+    current.source = publicEgress.value
     current.finalOutboundName = getFinalOutboundName(connection)
 
     if (!current.destination) {
       try {
-        current.destination = applyPacificCenter(
-          await fetchGeoPoint(connection.metadata.destinationIP),
-        )
+        current.destination = await fetchGeoPoint(connection.metadata.destinationIP)
       } catch {
         current.destination = null
       }
     }
 
     try {
-      current.proxy = applyPacificCenter(await resolveProxyHopGeoPoint(connection))
+      current.proxy = await resolveProxyHopGeoPoint(connection)
     } catch {
       current.proxy = null
     }
@@ -155,7 +138,7 @@ export const initWorldTrafficMap = () => {
           next[route.id] = {
             ...route,
             alive: true,
-            source: applyPacificCenter(publicEgress.value),
+            source: publicEgress.value,
             updatedAt: Date.now(),
           }
         }
@@ -176,7 +159,5 @@ export const initWorldTrafficMap = () => {
 }
 
 export const worldTrafficList = computed(() => {
-  return Object.values(worldTrafficRoutes.value).filter(
-    (route) => route.destination && route.source,
-  )
+  return Object.values(worldTrafficRoutes.value).filter((route) => route.destination)
 })

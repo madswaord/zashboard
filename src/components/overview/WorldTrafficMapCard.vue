@@ -82,12 +82,12 @@ const options = computed(() => {
   }
 
   routeList.value.forEach((route) => {
-    if (!route.source || !route.destination) return
+    if (!route.destination) return
 
-    pushPoint(route.source)
     pushPoint(route.destination)
+    if (route.source) pushPoint(route.source)
 
-    if (route.proxy) {
+    if (route.source && route.proxy) {
       pushPoint(route.proxy)
       lines.push({
         coords: [
@@ -111,7 +111,7 @@ const options = computed(() => {
         host: route.host,
         finalOutboundName: route.finalOutboundName,
       })
-    } else {
+    } else if (route.source) {
       lines.push({
         coords: [
           [route.source.longitude, route.source.latitude],
