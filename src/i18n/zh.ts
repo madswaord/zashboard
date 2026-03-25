@@ -275,6 +275,9 @@ const zh: LANG_MESSAGE = {
   networkCard: '网络卡片',
   providerTrafficOverview: '提供商流量概览',
   topologyCharts: '拓扑图表',
+  worldTrafficMap: '世界流量飞线图',
+  worldTrafficMapNoBaseMap:
+    '地图骨架已接入，但世界底图资源尚未本地化接入，因此当前先不渲染底图。下一步会补本地 world geojson 资源。',
   connectionHistory: '连接历史',
   ruleHitCountCard: '规则命中统计',
   ruleHitChart: '命中统计',

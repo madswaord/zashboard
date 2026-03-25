@@ -21,6 +21,7 @@ import NetworkCard from '@/components/overview/NetworkCard.vue'
 import ProviderTrafficOverview from '@/components/overview/ProviderTrafficOverview.vue'
 import RuleHitCountCard from '@/components/overview/RuleHitCountCard.vue'
 import TopologyCharts from '@/components/overview/TopologyCharts.vue'
+import WorldTrafficMapCard from '@/components/overview/WorldTrafficMapCard.vue'
 import OverviewCtrl from '@/components/sidebar/OverviewCtrl.vue'
 import { usePaddingForViews } from '@/composables/paddingViews'
 import { overviewCardOrder } from '@/store/settings'
@@ -40,6 +41,7 @@ const cardComponents: Record<string, Component> = {
   NetworkCard,
   ProviderTrafficOverview,
   TopologyCharts,
+  WorldTrafficMap: WorldTrafficMapCard,
   ConnectionHistory,
   RuleHitCountCard,
 }
