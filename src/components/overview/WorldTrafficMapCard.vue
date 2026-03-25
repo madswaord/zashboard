@@ -67,41 +67,13 @@ const toAtlanticLng = (lng: number) => {
 const buildArcSegments = (from: GeoPoint, to: GeoPoint) => {
   const fromLng = toAtlanticLng(from.longitude)
   const toLng = toAtlanticLng(to.longitude)
-  const diff = Math.abs(fromLng - toLng)
-
-  if (diff <= 180) {
-    return [
-      {
-        coords: [
-          [fromLng, from.latitude],
-          [toLng, to.latitude],
-        ] as [number, number][],
-        curveness: 0.22,
-      },
-    ]
-  }
-
-  const towardEast = fromLng < toLng
-  const edgeLng = towardEast ? 20 : -340
-  const edgeLng2 = towardEast ? -340 : 20
-  const adjustedToLng = towardEast ? toLng - 360 : toLng + 360
-  const ratio = (edgeLng - fromLng) / (adjustedToLng - fromLng)
-  const midLat = from.latitude + (to.latitude - from.latitude) * ratio
-
   return [
     {
       coords: [
         [fromLng, from.latitude],
-        [edgeLng, midLat],
-      ] as [number, number][],
-      curveness: 0.28,
-    },
-    {
-      coords: [
-        [edgeLng2, midLat],
         [toLng, to.latitude],
       ] as [number, number][],
-      curveness: 0.28,
+      curveness: Math.abs(fromLng - toLng) > 120 ? 0.12 : 0.2,
     },
   ]
 }
@@ -259,7 +231,7 @@ let chart: echarts.ECharts | null = null
 
 const ensureWorldMap = async () => {
   if (echarts.getMap('world')) return
-  const worldJson = await import('@/assets/maps/world-atlantic.json')
+  const worldJson = await import('@/assets/maps/world-atlantic-seam.json')
   echarts.registerMap('world', worldJson.default as never)
 }
 
