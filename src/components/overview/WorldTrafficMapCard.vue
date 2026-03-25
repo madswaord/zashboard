@@ -59,9 +59,14 @@ const normalizeLng = (lng: number) => {
   return value
 }
 
+const toPacificLng = (lng: number) => {
+  const normalized = normalizeLng(lng)
+  return normalized < 0 ? normalized + 360 : normalized
+}
+
 const buildArcSegments = (from: GeoPoint, to: GeoPoint) => {
-  const fromLng = normalizeLng(from.longitude)
-  const toLng = normalizeLng(to.longitude)
+  const fromLng = toPacificLng(from.longitude)
+  const toLng = toPacificLng(to.longitude)
   const diff = Math.abs(fromLng - toLng)
 
   if (diff <= 180) {
@@ -77,11 +82,10 @@ const buildArcSegments = (from: GeoPoint, to: GeoPoint) => {
   }
 
   const towardEast = fromLng < toLng
-  const edgeLng = towardEast ? 180 : -180
-  const edgeLng2 = towardEast ? -180 : 180
-  const ratio = towardEast
-    ? (edgeLng - fromLng) / (toLng - 360 - fromLng)
-    : (edgeLng - fromLng) / (toLng + 360 - fromLng)
+  const edgeLng = towardEast ? 360 : 0
+  const edgeLng2 = towardEast ? 0 : 360
+  const adjustedToLng = towardEast ? toLng - 360 : toLng + 360
+  const ratio = (edgeLng - fromLng) / (adjustedToLng - fromLng)
   const midLat = from.latitude + (to.latitude - from.latitude) * ratio
 
   return [
@@ -127,7 +131,7 @@ const options = computed(() => {
     }
     scatterMap.set(key, {
       name: pointName(point),
-      value: [point.longitude, point.latitude, extra],
+      value: [toPacificLng(point.longitude), point.latitude, extra],
       ip: point.ip,
     })
   }
