@@ -41,9 +41,10 @@ const refreshPublicEgress = async () => {
       return
     }
 
-    worldTrafficError.value = `公网 IP 获取成功（${publicIP.source}: ${publicIP.ip}），但地理定位失败`
+    worldTrafficError.value = `本机公网 IP 获取成功（${publicIP.source}: ${publicIP.ip}），但地理定位失败`
   } catch (error) {
-    worldTrafficError.value = error instanceof Error ? error.message : String(error)
+    const message = error instanceof Error ? error.message : String(error)
+    worldTrafficError.value = `本机公网 IP 获取失败：${message}`
     publicEgress.value = null
   }
 }

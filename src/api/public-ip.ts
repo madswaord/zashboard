@@ -63,19 +63,18 @@ const providers: (() => Promise<PublicIPResult>)[] = [
   async () => {
     const text = await readTextWithTimeout('https://4.ipw.cn', 5000)
     const ip = extractIPv4(text)
-    if (!ip) throw new Error('ipw.cn missing ip')
-    return { ip, source: 'ipw.cn' }
+    if (!ip) throw new Error('4.ipw.cn missing ip')
+    return { ip, source: '4.ipw.cn' }
   },
   async () => {
-    const text = await readTextWithTimeout('https://4.ipw.cn/api/ip/myip', 5000)
-    const ip = extractIPv4(text)
-    if (!ip) throw new Error('ipw.cn/api/ip/myip missing ip')
-    return { ip, source: 'ipw.cn/api/ip/myip' }
-  },
-  async () => {
-    const data = await fetchJSON<{ ip?: string }>('https://api.ipify.org?format=json', {}, 'ipify')
-    if (!data?.ip) throw new Error('ipify missing ip')
-    return { ip: data.ip, source: 'ipify' }
+    const data = await fetchJSON<{
+      data?: {
+        ip?: string
+      }
+    }>('https://myip.ipip.net/json', {}, 'ipip.net')
+    const ip = data?.data?.ip
+    if (!ip) throw new Error('ipip.net missing ip')
+    return { ip, source: 'ipip.net' }
   },
 ]
 
