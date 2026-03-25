@@ -1,3 +1,5 @@
+import { fetchJSON } from '@/helper/fetch-json'
+
 export interface PublicIPResult {
   ip: string
   country?: string
@@ -51,7 +53,7 @@ const withTimeout = async (input: RequestInfo | URL, init: RequestInit = {}, tim
 const providers: (() => Promise<PublicIPResult>)[] = [
   async () => {
     const res = await withTimeout('https://4.ipw.cn/api/ip/myip?json', {}, 5000)
-    const data = (await res.json()) as {
+    const data = await fetchJSON<{
       code?: number
       data?: {
         ip?: string
@@ -59,7 +61,7 @@ const providers: (() => Promise<PublicIPResult>)[] = [
       }
       IP?: string
       ip?: string
-    }
+    }>(res.url, {}, 'ipw.cn')
     const ip = data?.data?.ip || data?.IP || data?.ip
     if (!ip) throw new Error('ipw.cn missing ip')
     return {
@@ -69,7 +71,7 @@ const providers: (() => Promise<PublicIPResult>)[] = [
   },
   async () => {
     const res = await withTimeout('https://forge.speedtest.cn/api/location/info', {}, 5000)
-    const data = (await res.json()) as {
+    const data = await fetchJSON<{
       data?: {
         ip?: string
         country?: string
@@ -78,7 +80,7 @@ const providers: (() => Promise<PublicIPResult>)[] = [
         lat?: number | string
         lng?: number | string
       }
-    }
+    }>(res.url, {}, 'speedtest.cn')
     const ip = data?.data?.ip
     if (!ip) throw new Error('speedtest.cn missing ip')
     return {
@@ -93,12 +95,12 @@ const providers: (() => Promise<PublicIPResult>)[] = [
   },
   async () => {
     const res = await withTimeout('https://myip.ipip.net/json', {}, 5000)
-    const data = (await res.json()) as {
+    const data = await fetchJSON<{
       data?: {
         ip?: string
         location?: string[]
       }
-    }
+    }>(res.url, {}, 'ipip.net')
     const ip = data?.data?.ip
     if (!ip) throw new Error('ipip missing ip')
     const location = data?.data?.location || []

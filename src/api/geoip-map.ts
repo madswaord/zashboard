@@ -1,4 +1,5 @@
 import { IP_INFO_API } from '@/constant'
+import { fetchJSON } from '@/helper/fetch-json'
 import { IPInfoAPI } from '@/store/settings'
 
 export interface GeoPoint {
@@ -11,6 +12,45 @@ export interface GeoPoint {
   latitude: number
   longitude: number
   source: string
+}
+
+interface IpsbResponse {
+  ip?: string
+  country?: string
+  region?: string
+  city?: string
+  asn?: number | string
+  organization?: string
+  latitude?: number | string
+  longitude?: number | string
+}
+
+interface IpWhoisResponse {
+  ip?: string
+  country?: string
+  region?: string
+  city?: string
+  latitude?: number | string
+  longitude?: number | string
+  connection?: {
+    asn?: number | string
+    org?: string
+  }
+}
+
+interface IpApiIsResponse {
+  ip?: string
+  asn?: {
+    asn?: number | string
+    org?: string
+  }
+  location?: {
+    country?: string
+    state?: string
+    city?: string
+    latitude?: number | string
+    longitude?: number | string
+  }
 }
 
 const CACHE_PREFIX = 'cache/geo-point/'
@@ -45,8 +85,11 @@ const validPoint = (lat: number, lng: number) => {
 }
 
 const fromIpsb = async (ip: string): Promise<GeoPoint | null> => {
-  const response = await fetch(`https://api.ip.sb/geoip/${ip}?t=${Date.now()}`)
-  const data = await response.json()
+  const data = await fetchJSON<IpsbResponse>(
+    `https://api.ip.sb/geoip/${ip}?t=${Date.now()}`,
+    {},
+    'ip.sb',
+  )
   const lat = normalizeNumber(data.latitude)
   const lng = normalizeNumber(data.longitude)
   if (!validPoint(lat, lng)) return null
@@ -64,8 +107,11 @@ const fromIpsb = async (ip: string): Promise<GeoPoint | null> => {
 }
 
 const fromIPWhois = async (ip: string): Promise<GeoPoint | null> => {
-  const response = await fetch(`https://ipwho.is/${ip}?t=${Date.now()}`)
-  const data = await response.json()
+  const data = await fetchJSON<IpWhoisResponse>(
+    `https://ipwho.is/${ip}?t=${Date.now()}`,
+    {},
+    'ipwho.is',
+  )
   const lat = normalizeNumber(data.latitude)
   const lng = normalizeNumber(data.longitude)
   if (!validPoint(lat, lng)) return null
@@ -83,8 +129,11 @@ const fromIPWhois = async (ip: string): Promise<GeoPoint | null> => {
 }
 
 const fromIPApiIs = async (ip: string): Promise<GeoPoint | null> => {
-  const response = await fetch(`https://api.ipapi.is/?q=${encodeURIComponent(ip)}&t=${Date.now()}`)
-  const data = await response.json()
+  const data = await fetchJSON<IpApiIsResponse>(
+    `https://api.ipapi.is/?q=${encodeURIComponent(ip)}&t=${Date.now()}`,
+    {},
+    'ipapi.is',
+  )
   const lat = normalizeNumber(data?.location?.latitude)
   const lng = normalizeNumber(data?.location?.longitude)
   if (!validPoint(lat, lng)) return null

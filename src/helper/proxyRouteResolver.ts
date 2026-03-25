@@ -1,6 +1,11 @@
 import { fetchGeoPoint, type GeoPoint } from '@/api/geoip-map'
+import { fetchJSON } from '@/helper/fetch-json'
 import { proxyMap } from '@/store/proxies'
 import type { Connection, Proxy } from '@/types'
+
+interface AliDnsResponse {
+  Answer?: { data?: string }[]
+}
 
 const serverCache = new Map<string, string | null>()
 
@@ -32,10 +37,11 @@ const resolveDomainToIP = async (domain: string): Promise<string | null> => {
   if (serverCache.has(domain)) return serverCache.get(domain) || null
 
   try {
-    const response = await fetch(
+    const data = await fetchJSON<AliDnsResponse>(
       `https://dns.alidns.com/resolve?name=${encodeURIComponent(domain)}&type=A`,
+      {},
+      'dns.alidns.com',
     )
-    const data = await response.json()
     const answer = Array.isArray(data.Answer)
       ? data.Answer.find((item: { data?: string }) => item?.data)
       : null
