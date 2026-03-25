@@ -49,9 +49,13 @@ const refreshPublicEgress = async () => {
         ...geo,
         source: publicIP.source,
       }
+      return
     }
+
+    worldTrafficError.value = '公网出口定位失败，已降级为仅显示可解析线路'
   } catch (error) {
     worldTrafficError.value = error instanceof Error ? error.message : String(error)
+    publicEgress.value = null
   }
 }
 
@@ -76,6 +80,21 @@ const buildBaseRoute = (
   }
 }
 
+const toPacificCenteredLongitude = (lng: number) => {
+  let result = lng + 30
+  if (result > 180) result -= 360
+  if (result < -180) result += 360
+  return result
+}
+
+const applyPacificCenter = (point: GeoPoint | null) => {
+  if (!point) return null
+  return {
+    ...point,
+    longitude: toPacificCenteredLongitude(point.longitude),
+  }
+}
+
 const hydrateRoute = async (connection: (typeof activeConnections.value)[number]) => {
   if (hydrationMap.has(connection.id)) {
     return hydrationMap.get(connection.id)
@@ -83,11 +102,24 @@ const hydrateRoute = async (connection: (typeof activeConnections.value)[number]
 
   const promise = (async () => {
     const current = worldTrafficRoutes.value[connection.id] || buildBaseRoute(connection)
-    current.source = publicEgress.value
+    current.source = applyPacificCenter(publicEgress.value)
     current.finalOutboundName = getFinalOutboundName(connection)
-    current.destination =
-      current.destination || (await fetchGeoPoint(connection.metadata.destinationIP))
-    current.proxy = await resolveProxyHopGeoPoint(connection)
+
+    if (!current.destination) {
+      try {
+        current.destination = applyPacificCenter(
+          await fetchGeoPoint(connection.metadata.destinationIP),
+        )
+      } catch {
+        current.destination = null
+      }
+    }
+
+    try {
+      current.proxy = applyPacificCenter(await resolveProxyHopGeoPoint(connection))
+    } catch {
+      current.proxy = null
+    }
     current.alive = true
     current.updatedAt = Date.now()
     worldTrafficRoutes.value = {
@@ -123,7 +155,7 @@ export const initWorldTrafficMap = () => {
           next[route.id] = {
             ...route,
             alive: true,
-            source: publicEgress.value,
+            source: applyPacificCenter(publicEgress.value),
             updatedAt: Date.now(),
           }
         }

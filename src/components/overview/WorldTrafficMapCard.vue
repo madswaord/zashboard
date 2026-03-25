@@ -9,14 +9,14 @@
         class="h-full w-full"
       />
       <div
-        v-if="!publicEgress && !worldTrafficError"
+        v-if="!publicEgress && !routeList.length && !worldTrafficError"
         class="text-base-content/50 absolute inset-0 flex items-center justify-center text-sm"
       >
         {{ $t('getting') }}
       </div>
       <div
-        v-else-if="worldTrafficError && !routeList.length"
-        class="text-base-content/50 absolute inset-0 flex items-center justify-center px-6 text-center text-sm"
+        v-if="worldTrafficError"
+        class="text-base-content/70 bg-base-100/60 absolute top-13 right-2 left-2 z-10 rounded-md px-3 py-1 text-center text-xs backdrop-blur-sm"
       >
         {{ worldTrafficError }}
       </div>
@@ -152,13 +152,18 @@ const options = computed(() => {
       map: 'world',
       roam: true,
       silent: true,
+      top: 14,
+      bottom: 10,
+      left: 10,
+      right: 10,
       itemStyle: {
-        areaColor: '#1f2937',
-        borderColor: '#4b5563',
+        areaColor: 'rgba(148, 163, 184, 0.16)',
+        borderColor: 'rgba(148, 163, 184, 0.45)',
+        borderWidth: 0.8,
       },
       emphasis: {
         itemStyle: {
-          areaColor: '#374151',
+          areaColor: 'rgba(148, 163, 184, 0.24)',
         },
       },
     },
@@ -174,10 +179,10 @@ const options = computed(() => {
           symbolSize: 3,
         },
         lineStyle: {
-          color: '#60a5fa',
-          width: 1,
-          opacity: 0.8,
-          curveness: 0.2,
+          color: '#38bdf8',
+          width: 1.4,
+          opacity: 0.9,
+          curveness: 0.18,
         },
         data: lines,
       },
@@ -187,7 +192,7 @@ const options = computed(() => {
         zlevel: 3,
         symbolSize: (val: number[]) => Math.min(20, 6 + (val[2] || 1)),
         itemStyle: {
-          color: '#f59e0b',
+          color: '#f97316',
         },
         data: Array.from(scatterMap.values()),
       },
