@@ -33,6 +33,9 @@ export default defineConfig({
     vueJsx(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+      },
       includeAssets: ['favicon.svg', 'favicon-dark.svg'],
       manifest: {
         name: 'zashboard',

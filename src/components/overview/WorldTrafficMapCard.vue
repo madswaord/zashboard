@@ -255,7 +255,7 @@ let chart: echarts.ECharts | null = null
 
 const ensureWorldMap = async () => {
   if (echarts.getMap('world')) return
-  const worldJson = await import('@/assets/maps/world.json')
+  const worldJson = await import('@/assets/maps/world-pacific.json')
   echarts.registerMap('world', worldJson.default as never)
 }
 
