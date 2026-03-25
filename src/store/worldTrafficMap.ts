@@ -30,29 +30,18 @@ let stopWorldTrafficWatch: WatchStopHandle | null = null
 const refreshPublicEgress = async () => {
   try {
     const publicIP = await fetchPublicIP()
-    if (publicIP.latitude && publicIP.longitude) {
-      publicEgress.value = {
-        ip: publicIP.ip,
-        country: publicIP.country,
-        region: publicIP.region,
-        city: publicIP.city,
-        latitude: publicIP.latitude,
-        longitude: publicIP.longitude,
-        source: publicIP.source,
-      }
-      return
-    }
-
     const geo = await fetchGeoPoint(publicIP.ip)
+
     if (geo) {
       publicEgress.value = {
         ...geo,
         source: publicIP.source,
       }
+      worldTrafficError.value = ''
       return
     }
 
-    worldTrafficError.value = '公网出口定位失败，已降级为仅显示可解析线路'
+    worldTrafficError.value = `公网 IP 获取成功（${publicIP.source}: ${publicIP.ip}），但地理定位失败`
   } catch (error) {
     worldTrafficError.value = error instanceof Error ? error.message : String(error)
     publicEgress.value = null

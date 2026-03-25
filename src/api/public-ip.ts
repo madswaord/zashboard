@@ -2,11 +2,6 @@ import { fetchJSON } from '@/helper/fetch-json'
 
 export interface PublicIPResult {
   ip: string
-  country?: string
-  region?: string
-  city?: string
-  latitude?: number
-  longitude?: number
   source: string
 }
 
@@ -50,67 +45,37 @@ const withTimeout = async (input: RequestInfo | URL, init: RequestInit = {}, tim
   }
 }
 
+const readTextWithTimeout = async (url: string, timeout = 5000) => {
+  const response = await withTimeout(url, {}, timeout)
+  if (!response.ok) {
+    const text = await response.text().catch(() => '')
+    throw new Error(`${url} responded with ${response.status}: ${text.slice(0, 80)}`)
+  }
+  return await response.text()
+}
+
+const extractIPv4 = (text: string) => {
+  const match = text.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/)
+  return match?.[0] || ''
+}
+
 const providers: (() => Promise<PublicIPResult>)[] = [
   async () => {
-    const res = await withTimeout('https://4.ipw.cn/api/ip/myip?json', {}, 5000)
-    const data = await fetchJSON<{
-      code?: number
-      data?: {
-        ip?: string
-        location?: string
-      }
-      IP?: string
-      ip?: string
-    }>(res.url, {}, 'ipw.cn')
-    const ip = data?.data?.ip || data?.IP || data?.ip
+    const text = await readTextWithTimeout('https://4.ipw.cn', 5000)
+    const ip = extractIPv4(text)
     if (!ip) throw new Error('ipw.cn missing ip')
-    return {
-      ip,
-      source: 'ipw.cn',
-    }
+    return { ip, source: 'ipw.cn' }
   },
   async () => {
-    const res = await withTimeout('https://forge.speedtest.cn/api/location/info', {}, 5000)
-    const data = await fetchJSON<{
-      data?: {
-        ip?: string
-        country?: string
-        province?: string
-        city?: string
-        lat?: number | string
-        lng?: number | string
-      }
-    }>(res.url, {}, 'speedtest.cn')
-    const ip = data?.data?.ip
-    if (!ip) throw new Error('speedtest.cn missing ip')
-    return {
-      ip,
-      country: data?.data?.country,
-      region: data?.data?.province,
-      city: data?.data?.city,
-      latitude: Number(data?.data?.lat),
-      longitude: Number(data?.data?.lng),
-      source: 'speedtest.cn',
-    }
+    const text = await readTextWithTimeout('https://4.ipw.cn/api/ip/myip', 5000)
+    const ip = extractIPv4(text)
+    if (!ip) throw new Error('ipw.cn/api/ip/myip missing ip')
+    return { ip, source: 'ipw.cn/api/ip/myip' }
   },
   async () => {
-    const res = await withTimeout('https://myip.ipip.net/json', {}, 5000)
-    const data = await fetchJSON<{
-      data?: {
-        ip?: string
-        location?: string[]
-      }
-    }>(res.url, {}, 'ipip.net')
-    const ip = data?.data?.ip
-    if (!ip) throw new Error('ipip missing ip')
-    const location = data?.data?.location || []
-    return {
-      ip,
-      country: location[0],
-      region: location[1],
-      city: location[2],
-      source: 'ipip.net',
-    }
+    const data = await fetchJSON<{ ip?: string }>('https://api.ipify.org?format=json', {}, 'ipify')
+    if (!data?.ip) throw new Error('ipify missing ip')
+    return { ip: data.ip, source: 'ipify' }
   },
 ]
 
