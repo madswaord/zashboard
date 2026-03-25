@@ -153,12 +153,12 @@ const fromIPApiIs = async (ip: string): Promise<GeoPoint | null> => {
 const fetchGeoPointInner = async (ip: string): Promise<GeoPoint | null> => {
   switch (IPInfoAPI.value) {
     case IP_INFO_API.IPAPI:
-      return (await fromIPApiIs(ip)) || (await fromIpsb(ip)) || (await fromIPWhois(ip))
+      return (await fromIPApiIs(ip)) || (await fromIPWhois(ip)) || (await fromIpsb(ip))
     case IP_INFO_API.IPWHOIS:
-      return (await fromIPWhois(ip)) || (await fromIpsb(ip)) || (await fromIPApiIs(ip))
+      return (await fromIPWhois(ip)) || (await fromIPApiIs(ip)) || (await fromIpsb(ip))
     case IP_INFO_API.IPSB:
     default:
-      return (await fromIpsb(ip)) || (await fromIPWhois(ip)) || (await fromIPApiIs(ip))
+      return (await fromIPWhois(ip)) || (await fromIPApiIs(ip)) || (await fromIpsb(ip))
   }
 }
 
