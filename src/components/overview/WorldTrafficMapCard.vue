@@ -52,6 +52,56 @@ const pointName = (point: GeoPoint | null | undefined) => {
   return point.city || point.region || point.country || point.ip
 }
 
+const normalizeLng = (lng: number) => {
+  let value = lng
+  while (value > 180) value -= 360
+  while (value < -180) value += 360
+  return value
+}
+
+const buildArcSegments = (from: GeoPoint, to: GeoPoint) => {
+  const fromLng = normalizeLng(from.longitude)
+  const toLng = normalizeLng(to.longitude)
+  const diff = Math.abs(fromLng - toLng)
+
+  if (diff <= 180) {
+    return [
+      {
+        coords: [
+          [fromLng, from.latitude],
+          [toLng, to.latitude],
+        ] as [number, number][],
+        curveness: 0.22,
+      },
+    ]
+  }
+
+  const towardEast = fromLng < toLng
+  const edgeLng = towardEast ? 180 : -180
+  const edgeLng2 = towardEast ? -180 : 180
+  const ratio = towardEast
+    ? (edgeLng - fromLng) / (toLng - 360 - fromLng)
+    : (edgeLng - fromLng) / (toLng + 360 - fromLng)
+  const midLat = from.latitude + (to.latitude - from.latitude) * ratio
+
+  return [
+    {
+      coords: [
+        [fromLng, from.latitude],
+        [edgeLng, midLat],
+      ] as [number, number][],
+      curveness: 0.28,
+    },
+    {
+      coords: [
+        [edgeLng2, midLat],
+        [toLng, to.latitude],
+      ] as [number, number][],
+      curveness: 0.28,
+    },
+  ]
+}
+
 const options = computed(() => {
   const scatterMap = new Map<
     string,
@@ -64,6 +114,7 @@ const options = computed(() => {
     routeId: string
     host: string
     finalOutboundName: string | null
+    curveness: number
   }[] = []
 
   const pushPoint = (point: GeoPoint | null | undefined, extra = 1) => {
@@ -89,39 +140,39 @@ const options = computed(() => {
 
     if (route.source && route.proxy) {
       pushPoint(route.proxy)
-      lines.push({
-        coords: [
-          [route.source.longitude, route.source.latitude],
-          [route.proxy.longitude, route.proxy.latitude],
-        ],
-        fromName: pointName(route.source),
-        toName: pointName(route.proxy),
-        routeId: route.id,
-        host: route.host,
-        finalOutboundName: route.finalOutboundName,
+      buildArcSegments(route.source, route.proxy).forEach((segment) => {
+        lines.push({
+          coords: segment.coords,
+          fromName: pointName(route.source),
+          toName: pointName(route.proxy),
+          routeId: route.id,
+          host: route.host,
+          finalOutboundName: route.finalOutboundName,
+          curveness: segment.curveness,
+        })
       })
-      lines.push({
-        coords: [
-          [route.proxy.longitude, route.proxy.latitude],
-          [route.destination.longitude, route.destination.latitude],
-        ],
-        fromName: pointName(route.proxy),
-        toName: pointName(route.destination),
-        routeId: route.id,
-        host: route.host,
-        finalOutboundName: route.finalOutboundName,
+      buildArcSegments(route.proxy, route.destination).forEach((segment) => {
+        lines.push({
+          coords: segment.coords,
+          fromName: pointName(route.proxy),
+          toName: pointName(route.destination),
+          routeId: route.id,
+          host: route.host,
+          finalOutboundName: route.finalOutboundName,
+          curveness: segment.curveness,
+        })
       })
     } else if (route.source) {
-      lines.push({
-        coords: [
-          [route.source.longitude, route.source.latitude],
-          [route.destination.longitude, route.destination.latitude],
-        ],
-        fromName: pointName(route.source),
-        toName: pointName(route.destination),
-        routeId: route.id,
-        host: route.host,
-        finalOutboundName: route.finalOutboundName,
+      buildArcSegments(route.source, route.destination).forEach((segment) => {
+        lines.push({
+          coords: segment.coords,
+          fromName: pointName(route.source),
+          toName: pointName(route.destination),
+          routeId: route.id,
+          host: route.host,
+          finalOutboundName: route.finalOutboundName,
+          curveness: segment.curveness,
+        })
       })
     }
   })
@@ -174,14 +225,14 @@ const options = computed(() => {
         zlevel: 2,
         effect: {
           show: true,
-          period: 4,
-          trailLength: 0.28,
-          symbolSize: 2.2,
+          period: 3,
+          trailLength: 0.42,
+          symbolSize: 3.4,
         },
         lineStyle: {
-          color: 'rgba(56, 189, 248, 0.45)',
-          width: 0.7,
-          opacity: 0.35,
+          color: 'rgba(56, 189, 248, 0.28)',
+          width: 0.55,
+          opacity: 0.22,
           curveness: 0.18,
         },
         data: lines,
