@@ -150,15 +150,37 @@ const fromIPApiIs = async (ip: string): Promise<GeoPoint | null> => {
   }
 }
 
+const tryProviders = async (
+  ip: string,
+  providers: Array<(ip: string) => Promise<GeoPoint | null>>,
+): Promise<GeoPoint | null> => {
+  let lastError: unknown = null
+
+  for (const provider of providers) {
+    try {
+      const result = await provider(ip)
+      if (result) return result
+    } catch (error) {
+      lastError = error
+    }
+  }
+
+  if (lastError) {
+    throw lastError
+  }
+
+  return null
+}
+
 const fetchGeoPointInner = async (ip: string): Promise<GeoPoint | null> => {
   switch (IPInfoAPI.value) {
     case IP_INFO_API.IPAPI:
-      return (await fromIPApiIs(ip)) || (await fromIPWhois(ip)) || (await fromIpsb(ip))
+      return await tryProviders(ip, [fromIPApiIs, fromIPWhois, fromIpsb])
     case IP_INFO_API.IPWHOIS:
-      return (await fromIPWhois(ip)) || (await fromIPApiIs(ip)) || (await fromIpsb(ip))
+      return await tryProviders(ip, [fromIPWhois, fromIPApiIs, fromIpsb])
     case IP_INFO_API.IPSB:
     default:
-      return (await fromIPWhois(ip)) || (await fromIPApiIs(ip)) || (await fromIpsb(ip))
+      return await tryProviders(ip, [fromIPWhois, fromIPApiIs, fromIpsb])
   }
 }
 
