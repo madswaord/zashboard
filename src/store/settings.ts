@@ -121,10 +121,6 @@ const defaultOverviewCardOrder: { card: OVERVIEW_CARD; visible: boolean }[] = [
     visible: true,
   },
   {
-    card: OVERVIEW_CARD.WorldTrafficMap,
-    visible: true,
-  },
-  {
     card: OVERVIEW_CARD.ConnectionHistory,
     visible: true,
   },
@@ -140,6 +136,13 @@ export const overviewCardOrder = useStorage<{ card: OVERVIEW_CARD; visible: bool
 )
 
 // 确保所有卡片都在配置中，缺失的卡片添加到末尾
+const dedupedOverviewCardOrder = overviewCardOrder.value.filter((item, index, arr) => {
+  return arr.findIndex((candidate) => candidate.card === item.card) === index
+})
+if (dedupedOverviewCardOrder.length !== overviewCardOrder.value.length) {
+  overviewCardOrder.value = dedupedOverviewCardOrder
+}
+
 const allCardTypes = Object.values(OVERVIEW_CARD)
 const existingCardTypes = new Set(overviewCardOrder.value.map((item) => item.card))
 const missingCards = allCardTypes.filter((card) => !existingCardTypes.has(card))
