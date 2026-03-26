@@ -66,7 +66,7 @@ const chartHeight = computed(() => {
   if (isMobile.value) {
     return Math.max(264, Math.min(360, (ratioHeight + 36) * 1.2))
   }
-  return Math.max(260, Math.min(420, ratioHeight))
+  return Math.max(221, Math.min(357, ratioHeight * 0.85))
 })
 
 const chartContainerStyle = computed(() => ({
