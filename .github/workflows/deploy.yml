@@ -37,7 +37,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build
-          echo 'board.zash.run.place' > ./dist/CNAME
 
       - name: Deploy 🚀
         uses: peaceiris/actions-gh-pages@v4
@@ -57,7 +56,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build:cdn-fonts
-          echo 'board.zash.run.place' > ./dist/CNAME
 
       - name: Deploy to gh-pages-cdn-fonts 🚀
         uses: peaceiris/actions-gh-pages@v4
@@ -78,7 +76,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build:firasans-only
-          echo 'board.zash.run.place' > ./dist/CNAME
 
       - name: Deploy to gh-pages-firasans-only 🚀
         uses: peaceiris/actions-gh-pages@v4
@@ -99,7 +96,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build:misans-only
-          echo 'board.zash.run.place' > ./dist/CNAME
 
       - name: Deploy to gh-pages-misans-only 🚀
         uses: peaceiris/actions-gh-pages@v4
@@ -120,7 +116,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build:pingfang-only
-          echo 'board.zash.run.place' > ./dist/CNAME
 
       - name: Deploy to gh-pages-pingfang-only 🚀
         uses: peaceiris/actions-gh-pages@v4
@@ -141,7 +136,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build:sarasa-only
-          echo 'board.zash.run.place' > ./dist/CNAME
 
       - name: Deploy to gh-pages-sarasa-only 🚀
         uses: peaceiris/actions-gh-pages@v4
@@ -162,7 +156,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build:no-fonts
-          echo 'board.zash.run.place' > ./dist/CNAME
 
       - name: Deploy to gh-pages-no-fonts 🚀
         uses: peaceiris/actions-gh-pages@v4
@@ -237,7 +230,7 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: |
-            ghcr.io/zephyruso/zashboard:latest
-            ghcr.io/zephyruso/zashboard:${{ needs.release-please.outputs.tag_name }}
+            ghcr.io/madswaord/zashboard:latest
+            ghcr.io/madswaord/zashboard:${{ needs.release-please.outputs.tag_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
