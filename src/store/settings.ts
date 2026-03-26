@@ -101,6 +101,10 @@ export const numberOfChartsInSidebar = useStorage<1 | 2 | 3>(
 )
 const defaultOverviewCardOrder: { card: OVERVIEW_CARD; visible: boolean }[] = [
   {
+    card: OVERVIEW_CARD.WorldTrafficMap,
+    visible: true,
+  },
+  {
     card: OVERVIEW_CARD.ChartsCard,
     visible: true,
   },

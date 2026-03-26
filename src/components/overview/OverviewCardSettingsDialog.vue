@@ -45,7 +45,7 @@ const cardKeyToLabelMap: Record<string, string> = {
   NetworkCard: 'networkCard',
   ProviderTrafficOverview: 'providerTrafficOverview',
   TopologyCharts: 'topologyCharts',
-  WorldTrafficMap: 'worldTrafficMap',
+  WorldTrafficMap: 'globalRouteMatrix',
   ConnectionHistory: 'connectionHistory',
   RuleHitCountCard: 'ruleHitCountCard',
 }

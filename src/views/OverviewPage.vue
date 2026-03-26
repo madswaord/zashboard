@@ -33,7 +33,12 @@ const { padding } = usePaddingForViews({
   offsetBottom: 0,
 })
 const visibleCards = computed(() => {
-  return overviewCardOrder.value.filter((card) => card.visible)
+  const cards = overviewCardOrder.value.filter((card) => card.visible)
+  return cards.sort((a, b) => {
+    if (a.card === 'WorldTrafficMap') return -1
+    if (b.card === 'WorldTrafficMap') return 1
+    return 0
+  })
 })
 
 const cardComponents: Record<string, Component> = {
