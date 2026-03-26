@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-src = Path('/root/zashboard/src/assets/maps/world.json')
+src = Path('/root/zashboard/map-assets/sources/world.standard.geojson')
 dst = Path('/root/zashboard/src/assets/maps/world-atlantic.json')
 
 SEAM = 20  # Atlantic seam around 20E
