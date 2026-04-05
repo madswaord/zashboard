@@ -39,6 +39,15 @@ export const exportSettings = () => {
   URL.revokeObjectURL(url)
 }
 
+export const resetSettings = () => {
+  const keysToReset = Object.keys(localStorage).filter((key) => {
+    return key.startsWith('config/')
+  })
+
+  keysToReset.forEach((key) => localStorage.removeItem(key))
+  window.location.reload()
+}
+
 export const getUrlFromBackend = (end: Omit<Backend, 'uuid'>) => {
   return `${end.protocol}://${end.host}:${end.port}${end.secondaryPath || ''}`
 }
@@ -51,7 +60,7 @@ export const getMinCardWidth = (size: PROXY_CARD_SIZE) => {
   return size === PROXY_CARD_SIZE.LARGE ? MIN_PROXY_CARD_WIDTH.LARGE : MIN_PROXY_CARD_WIDTH.SMALL
 }
 
-export const SCROLLABLE_PARENT_CLASS = 'scrollable-parent'
+export const PROXIES_PARENT_CLASS = 'proxies-scrollable-parent'
 
 export const scrollIntoCenter = (el: HTMLElement) => {
   const scrollableParent = findScrollableParent(el)
@@ -79,7 +88,7 @@ export const findScrollableParent = (el: HTMLElement | null): HTMLElement | null
   const parent = el?.parentElement
 
   if (
-    parent?.classList.contains(SCROLLABLE_PARENT_CLASS) &&
+    parent?.classList.contains(PROXIES_PARENT_CLASS) &&
     parent.scrollHeight > parent.clientHeight
   ) {
     return parent
@@ -88,7 +97,7 @@ export const findScrollableParent = (el: HTMLElement | null): HTMLElement | null
   return parent ? findScrollableParent(parent) : null
 }
 
-export const PROXIES_PAGE = 'proxies-page'
+export const PROXIES_PAGE = 'proxies-scrollable-page'
 
 export const scrollToGroup = (groupName: string) => {
   const el = document.querySelector(`[data-group-name="${groupName}"]`) as HTMLElement | null
@@ -132,6 +141,7 @@ export const getBackendFromUrl = () => {
       label: query.get('label') || '',
       disableUpgradeCore:
         query.get('disableUpgradeCore') === '1' || query.get('disableUpgradeCore') === 'core',
+      disableTunMode: query.get('disableTunMode') === '1' || query.get('disableTunMode') === 'tun',
     }
   }
   return null

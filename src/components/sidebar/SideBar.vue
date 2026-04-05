@@ -1,6 +1,6 @@
 <template>
   <div
-    class="sidebar bg-base-200 text-base-content scrollbar-hidden h-full overflow-x-hidden p-2 transition-all"
+    class="sidebar border-base-300/30 bg-base-200 text-base-content scrollbar-hidden h-full overflow-x-hidden border-r p-2 transition-all"
     :class="isSidebarCollapsed ? 'w-18 px-0' : 'w-64'"
   >
     <div :class="twMerge('flex h-full flex-col gap-2', isSidebarCollapsed ? 'w-18 px-0' : 'w-60')">
@@ -38,10 +38,8 @@
         />
       </template>
       <template v-else>
-        <OverviewCarousel v-if="route.name !== ROUTE_NAME.overview" />
-        <div class="card">
-          <CommonSidebar />
-        </div>
+        <OverviewCarousel />
+        <CommonSidebar class="base-container" />
       </template>
     </div>
   </div>
@@ -49,7 +47,7 @@
 
 <script setup lang="ts">
 import CommonSidebar from '@/components/sidebar/CommonCtrl.vue'
-import { ROUTE_ICON_MAP, ROUTE_NAME } from '@/constant'
+import { ROUTE_ICON_MAP } from '@/constant'
 import { renderRoutes } from '@/helper'
 import { useTooltip } from '@/helper/tooltip'
 import router from '@/router'

@@ -1,27 +1,28 @@
 <template>
-  <div
-    class="card"
-    :class="{ 'opacity-50': isDisabled }"
-  >
+  <div :class="{ 'opacity-50': isDisabled, 'scroller-item': 1 }">
     <div
-      class="flex flex-col gap-2 overflow-hidden p-2 text-sm"
+      class="hover:bg-base-200/40 flex flex-col gap-3 overflow-hidden px-3 py-2 text-sm transition-colors"
       :class="{
         'cursor-pointer': isSelectable,
       }"
       @click="clickHandler"
     >
-      <div class="min-h-6 leading-6">
-        <span>{{ index }}.</span>
-        <span class="ml-2">{{ rule.type }}</span>
+      <div class="min-h-5 leading-5">
+        <span class="text-base-content/50 text-xs tabular-nums">
+          {{ index }}
+        </span>
+        <span class="text-base-content/80 ml-4 text-xs"
+          >{{ rule.type }} <template v-if="rule.payload"> : </template></span
+        >
         <span
-          class="text-main ml-2"
+          class="ml-2"
           v-if="rule.payload"
         >
           {{ rule.payload }}
         </span>
         <span
           v-if="typeof size === 'number' && size !== -1"
-          class="text-base-content/80 ml-1 text-xs"
+          class="text-base-content/50 ml-1 text-xs tabular-nums"
         >
           ({{ size }})
           <QuestionMarkCircleIcon
@@ -40,16 +41,16 @@
           "
           @click.stop="updateRuleProviderClickHandler"
         >
-          <ArrowPathIcon class="h-4 w-4" />
+          <ArrowPathIcon class="h-3.5 w-3.5 opacity-60" />
         </button>
         <InformationCircleIcon
           v-if="rule.extra"
-          class="-mt-[2px] ml-1 inline-block h-4 w-4"
+          class="-mt-[2px] ml-1 inline-block h-4 w-4 opacity-60"
           @mouseenter="showRuleHitInfoTip"
           @click.stop
         />
       </div>
-      <div class="flex min-h-6 flex-wrap items-center gap-1 md:gap-2">
+      <div class="flex items-center gap-2">
         <input
           v-if="rule.uuid || rule.extra"
           type="checkbox"
@@ -58,53 +59,24 @@
           @change="toggleRuleDisabledHandler"
           @click.stop
         />
-        <ProxyName
-          v-if="isCollapsed"
-          :name="rule.proxy"
-          class="badge gap-0 text-xs"
+        <ProxyChainPath
+          :proxy="rule.proxy"
+          :selected="selected"
+          :collapsed="isCollapsed"
+          :show-now-node="displayNowNodeInRule"
+          :show-latency="displayLatencyInRule"
+          :interactive="!isCollapsed"
+          @update:selected="selected = $event"
         />
-        <template v-if="!isCollapsed">
-          <template
-            v-for="(chain, index) in proxyChains"
-            :key="chain"
-          >
-            <ArrowRightCircleIcon
-              class="h-4 w-4"
-              v-if="index > 0"
-            />
-            <ProxyName
-              :name="chain"
-              class="badge gap-0 text-xs"
-              :class="{
-                'bg-neutral text-neutral-content': selected === chain,
-              }"
-              @click.stop="selected = chain"
-            />
-          </template>
-        </template>
-        <template v-if="proxyNode?.now && displayNowNodeInRule">
-          <ArrowRightCircleIcon class="h-4 w-4" />
-          <ProxyName
-            :name="getNowProxyNodeName(rule.proxy)"
-            class="badge cursor-not-allowed gap-0 text-xs"
-            @click.stop
-          />
-        </template>
-        <span
-          v-if="latency !== NOT_CONNECTED && displayLatencyInRule"
-          :class="latencyColor"
-          class="ml-1 text-xs"
-        >
-          {{ latency }}
-        </span>
       </div>
     </div>
 
     <template v-if="isSelectable && !isCollapsed">
-      <div class="border-base-content/15 border-b"></div>
+      <div class="border-base-content/3 border-b"></div>
       <ProxyGroup
         :name="selected"
-        class="transparent-collapse"
+        :force-open="true"
+        class="transparent-collapse bg-base-200/40! rounded-none!"
       />
     </template>
   </div>
@@ -118,17 +90,9 @@ import {
   updateRuleProviderAPI,
 } from '@/api'
 import { useBounceOnVisible } from '@/composables/bouncein'
-import { NOT_CONNECTED } from '@/constant'
-import { getColorForLatency } from '@/helper'
 import { useTooltip } from '@/helper/tooltip'
 import { activeConnections } from '@/store/connections'
-import {
-  getLatencyByName,
-  getNowProxyNodeName,
-  getProxyGroupChains,
-  proxyGroupList,
-  proxyMap,
-} from '@/store/proxies'
+import { proxyGroupList } from '@/store/proxies'
 import { fetchRules, ruleProviderList } from '@/store/rules'
 import {
   disconnectOnRuleDisable,
@@ -138,32 +102,30 @@ import {
 import type { Rule } from '@/types'
 import {
   ArrowPathIcon,
-  ArrowRightCircleIcon,
   InformationCircleIcon,
   QuestionMarkCircleIcon,
 } from '@heroicons/vue/24/outline'
 import dayjs from 'dayjs'
 import { twMerge } from 'tailwind-merge'
-import { computed, createApp, defineComponent, h, ref } from 'vue'
+import type { Ref } from 'vue'
+import { computed, createApp, defineComponent, h, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ProxyChainPath from '../common/ProxyChainPath.vue'
 import ProxyGroup from '../proxies/ProxyGroup.vue'
-import ProxyName from '../proxies/ProxyName.vue'
 
 const props = defineProps<{
   rule: Rule
   index: number
 }>()
 
-const isCollapsed = ref(true)
+const expandedRule = inject<Ref<string | null>>('expandedRule', ref(null))
+const ruleKey = computed(() => `${props.index}-${props.rule.payload}`)
+const isCollapsed = computed(() => expandedRule.value !== ruleKey.value)
 const isSelectable = computed(() => proxyGroupList.value.includes(props.rule.proxy))
 const selected = ref('')
-const proxyChains = computed(() => getProxyGroupChains(props.rule.proxy))
 
 const { t } = useI18n()
 const { showTip } = useTooltip()
-const proxyNode = computed(() => proxyMap.value[props.rule.proxy])
-const latency = computed(() => getLatencyByName(props.rule.proxy, props.rule.proxy))
-const latencyColor = computed(() => getColorForLatency(Number(latency.value)))
 
 const size = computed(() => {
   if (props.rule.type === 'RuleSet') {
@@ -283,7 +245,7 @@ const showRuleHitInfoTip = (e: Event) => {
 
 const clickHandler = () => {
   if (isSelectable.value && !props.rule.disabled) {
-    isCollapsed.value = !isCollapsed.value
+    expandedRule.value = isCollapsed.value ? ruleKey.value : null
     selected.value = props.rule.proxy
   }
 }

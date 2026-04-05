@@ -2,6 +2,99 @@
 
 # Changelog
 
+## [3.2.0](https://github.com/Zephyruso/zashboard/compare/v3.1.0...v3.2.0) (2026-04-03)
+
+
+### Features
+
+* **backend:** add disableTunMode property and update related logic ([356f1cb](https://github.com/Zephyruso/zashboard/commit/356f1cba577c449cc4edbd252feec4c698f77bca))
+* **providers:** redesign ProxyProvider and RuleProvider with Apple-style aesthetics ([5d7035b](https://github.com/Zephyruso/zashboard/commit/5d7035bb794dfc4614528710b562e73369c4241f))
+* **sidebar:** simplify statistics structure and improve readability ([0f04fb6](https://github.com/Zephyruso/zashboard/commit/0f04fb6392c4d95101831057c5e5f2a756b431ad))
+
+
+### Bug Fixes
+
+* **ConnectionDetails:** improve layout and styling for better responsiveness ([544f096](https://github.com/Zephyruso/zashboard/commit/544f0967bf1b18c7a04eda946dd8ee2b36c08df8))
+* **i18n:** missing i18n for smart core ([64e786d](https://github.com/Zephyruso/zashboard/commit/64e786de453b514a8635a72806d5ef37c7454594))
+
+## [3.1.0](https://github.com/Zephyruso/zashboard/compare/v3.0.0...v3.1.0) (2026-04-02)
+
+
+### Features
+
+* enhance backend settings UI and add BackendPortsGrid component ([4eeb05d](https://github.com/Zephyruso/zashboard/commit/4eeb05d5b7a33c17bca1027adef077aa9a82b4c1))
+* **settings:** implement background settings component with theme detection ([482f8d0](https://github.com/Zephyruso/zashboard/commit/482f8d0a1308f4c03511f7238962c6b159d6f684))
+
+
+### Bug Fixes
+
+* **main:** prevent history state manipulation in Edge browser ([87799dd](https://github.com/Zephyruso/zashboard/commit/87799dd9e9f3312c10d257f59f29909fabc2fdaf))
+* **proxy:** update display format for proxy group type and count ([1acc253](https://github.com/Zephyruso/zashboard/commit/1acc253f8a08350e5578a7ed82f6364cb7a27bc6))
+* **pwa:** load fonts and images from assets instead of public ([773e2d6](https://github.com/Zephyruso/zashboard/commit/773e2d6f324f83ebb74bc54c8d9e3f3be9d439b2))
+* **storage:** migrate legacy storage keys for selected node and connection card ([72d2b49](https://github.com/Zephyruso/zashboard/commit/72d2b492fd2d7b8c59dea92581b415b47216c2d7))
+* **table:** correct translucent background styling ([c8f34cc](https://github.com/Zephyruso/zashboard/commit/c8f34cc2f07c78500b58f2cec0aa4be3a199c0f0))
+
+## [3.0.0](https://github.com/Zephyruso/zashboard/compare/v2.10.1...v3.0.0) (2026-03-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* removed several legacy and daisyUI default themes. Removed the zashboard@2 light theme and the light-legacy/dark-legacy themes. Renamed the zashboard@2 dark theme to dark-daisyui5, which will be kept temporarily until a possible zashboard@4 release.
+
+### Features
+
+* add reset settings functionality with confirmation dialog ([63aab08](https://github.com/Zephyruso/zashboard/commit/63aab08a8d6628c8e6b89d4531e582e241723a0d))
+* redesign zashboard@3 themes around the new Apple-inspired design language ([79f12bb](https://github.com/Zephyruso/zashboard/commit/79f12bbcbeae2d4d98d69e721a9c05a38a9f7277))
+
+
+### Bug Fixes
+
+* border radius styling of connnection table ([dd8d1d9](https://github.com/Zephyruso/zashboard/commit/dd8d1d961f1a8026421b69a1776f326d62cbfeb3))
+* improve node handling in Sankey chart to prevent incorrect loops and enhance link filtering ([900b277](https://github.com/Zephyruso/zashboard/commit/900b2774bf0de5101c5cb1495e1677bd90b56f62))
+* update row background color logic for improved styling consistency ([eb70c18](https://github.com/Zephyruso/zashboard/commit/eb70c18240588b0a2ce30a7b5b6e53d559e7c612))
+
+## [2.10.1](https://github.com/Zephyruso/zashboard/compare/v2.10.0...v2.10.1) (2026-03-30)
+
+
+### Bug Fixes
+
+* blur effect for rules and logs page ([cea23ab](https://github.com/Zephyruso/zashboard/commit/cea23ab6f06d194a9b8bf37d12a580e9fb2cc538))
+* padding top style in 768px screen ([7031b8b](https://github.com/Zephyruso/zashboard/commit/7031b8b6b0d3287d67fa6701983a4ba90d421c5f))
+
+## [2.10.0](https://github.com/Zephyruso/zashboard/compare/v2.9.0...v2.10.0) (2026-03-29)
+
+
+### Features
+
+* add two-column layout for settings page on wide screens ([85d675b](https://github.com/Zephyruso/zashboard/commit/85d675b215afd368a9ef5a733c8076a63a2ce376))
+* force ProxyGroup open when rule proxy chain is expanded ([789d080](https://github.com/Zephyruso/zashboard/commit/789d0803d673f989f552d3df8c2f6b088b552334))
+* improve slide transitions with iOS-style animation ([eb7d932](https://github.com/Zephyruso/zashboard/commit/eb7d932a163371e18e6d8d90d47de213d2b5487b))
+* refine card layout with scroller-group system and proxy chain redesign ([6dfad29](https://github.com/Zephyruso/zashboard/commit/6dfad29a1ec68b730079faf994bcc2057ddf0987))
+
+## [2.9.0](https://github.com/Zephyruso/zashboard/compare/v2.8.1...v2.9.0) (2026-03-28)
+
+
+### Features
+
+* add Apple-style themes and refine UI to macOS/iOS aesthetic ([f75144a](https://github.com/Zephyruso/zashboard/commit/f75144addf8072b049798f9aef463aa61537c6cc))
+* enhance settings components with improved dialog handling and grid layout ([4711084](https://github.com/Zephyruso/zashboard/commit/4711084d26646a1990d6d4bceb271ac70fe4c223))
+* enhance settings UI with improved layout and new components ([761ae3f](https://github.com/Zephyruso/zashboard/commit/761ae3f5bffe3e3b75bbd68c5b139e3ae31f18d5))
+* improve settings page scroll tracking and relocate refresh button ([7eaebee](https://github.com/Zephyruso/zashboard/commit/7eaebeed0f3d673a132096b5dc92040788551d2e))
+* refine overview charts with MiniSparkline and improved axis labels ([ca22d39](https://github.com/Zephyruso/zashboard/commit/ca22d398578256d0e16b4a4c1d928ec833bd83c7))
+* refine UI components with macOS-style design improvements ([a9a93a6](https://github.com/Zephyruso/zashboard/commit/a9a93a63d60cbd3b014b2afa3ffe32e6aaba4610))
+* reorganize settings layout and consolidate panel style section ([349c0b3](https://github.com/Zephyruso/zashboard/commit/349c0b328a7ab5800e0fcc6e76030b3093a4e90b))
+
+## [2.8.1](https://github.com/Zephyruso/zashboard/compare/v2.8.0...v2.8.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* abnormal scrolling when expanding proxy groups ([d865be9](https://github.com/Zephyruso/zashboard/commit/d865be9e50e830816ddf9ece3c87f7538471f560))
+* add replace option to router push for consistent navigation behavior when running in mobile browser or in webui app like ksu ([#601](https://github.com/Zephyruso/zashboard/issues/601)) ([8307db4](https://github.com/Zephyruso/zashboard/commit/8307db4e5048345ecf391e98fd52b34c5b90c9e2))
+* **api:** decode URL in error notification for better readability ([a66cb4c](https://github.com/Zephyruso/zashboard/commit/a66cb4c8e4dfe4af3e3c7e35459a27341506742b))
+* **DialogWrapper:** add Enter key event support and optimized focus management ([#599](https://github.com/Zephyruso/zashboard/issues/599)) ([f228d21](https://github.com/Zephyruso/zashboard/commit/f228d2124807514238247f7f8953500bef34c4b8))
+* **DialogWrapper:** remove default focus outline on modal box ([cd280da](https://github.com/Zephyruso/zashboard/commit/cd280dad817dec8f71bb76aade0cd6cab633c29d))
+
 ## [2.8.0](https://github.com/Zephyruso/zashboard/compare/v2.7.0...v2.8.0) (2026-03-19)
 
 

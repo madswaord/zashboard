@@ -81,10 +81,11 @@ const options = computed(() => {
       textStyle: {
         color: colorSet.baseContent,
         fontFamily,
+        fontSize: 10,
       },
     },
     grid: {
-      left: 60,
+      left: 50,
       top: 15,
       right: 8,
       bottom: 25,
@@ -94,11 +95,13 @@ const options = computed(() => {
       trigger: 'axis',
       backgroundColor: colorSet.base70,
       borderColor: colorSet.base70,
+      borderRadius: 8,
       confine: true,
-      padding: [0, 5],
+      padding: [0, 3],
       textStyle: {
         color: colorSet.baseContent,
         fontFamily,
+        fontSize: 11,
       },
       formatter: props.toolTipFormatter,
     },
@@ -125,10 +128,11 @@ const options = computed(() => {
       },
       axisLabel: {
         align: 'left',
-        padding: [0, 0, 0, -45],
+        padding: [0, 0, 0, -35],
         formatter: props.labelFormatter,
         color: colorSet.baseContent,
         fontFamily,
+        fontSize: 10,
       },
     },
     series: props.data.map((item, index) => {

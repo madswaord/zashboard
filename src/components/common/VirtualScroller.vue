@@ -8,11 +8,11 @@
       :style="{
         height: `${totalSize}px`,
       }"
-      class="relative w-full"
+      class="relative w-full shrink-0"
       v-if="data.length > 0"
     >
       <div
-        class="absolute top-0 left-0 w-full p-2"
+        :class="['base-container virtual-scroller absolute top-3 right-3 left-3', contentClass]"
         :style="{
           transform: `translateY(${virtualRows[0]?.start ?? 0}px)`,
         }"
@@ -22,7 +22,7 @@
           :key="row.key.toString()"
           :data-index="row.index"
           :ref="(ref) => measureElement(ref as Element | null)"
-          :style="{ marginBottom: marginBottom(row.index) }"
+          :class="getBorderClass(row.index)"
         >
           <slot
             :item="data[row.index]"
@@ -33,9 +33,10 @@
     </div>
     <div
       v-else
-      class="card m-2 flex-row p-2 text-sm"
+      class="base-container m-3 flex-row p-3 text-sm"
+      :style="{ marginTop: `${paddingTop + 12}px`, marginBottom: `${paddingBottom}px` }"
     >
-      {{ $t('noContent') }}
+      {{ $t('noData') }}
     </div>
   </div>
 </template>
@@ -56,13 +57,16 @@ const props = withDefaults(
     data: any[]
     size?: number
     overscan?: number
+    contentClass?: string
   }>(),
   {
     data: () => [],
     size: 64,
     overscan: 24,
+    contentClass: '',
   },
 )
+
 const virutalOptions = computed(() => {
   return {
     count: props.data.length,
@@ -70,16 +74,20 @@ const virutalOptions = computed(() => {
     estimateSize: () => props.size,
     overscan: props.overscan,
     paddingStart: paddingTop.value,
+    paddingEnd: paddingBottom.value + 24,
   }
 })
 
 const rowVirtualizer = useVirtualizer(virutalOptions)
 const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems())
 const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
-
-const marginBottom = (index: number) => {
-  return index === props.data.length - 1 ? `${paddingBottom.value}px` : '4px'
+const getBorderClass = (index: number) => {
+  if (index !== 0) {
+    return 'border-base-border border-t'
+  }
+  return ''
 }
+
 const measureElement = (el: Element | null) => {
   if (!el) {
     return

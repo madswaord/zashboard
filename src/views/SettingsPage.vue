@@ -1,60 +1,99 @@
 <template>
   <div
-    class="relative flex h-full flex-col overflow-y-auto"
-    ref="scrollContainerRef"
+    class="relative h-full overflow-y-auto"
     @scroll.passive="handleScroll"
+    ref="scrollContainerRef"
   >
-    <!-- 左侧菜单 -->
     <SettingsMenu
-      ref="menuComponentRef"
       :menu-items="menuItems"
       :active-menu-key="activeMenuKey"
+      :show-active-indicator="!isTwoColumns"
       @menu-click="handleMenuClick"
     />
-    <!-- 右侧内容区域 -->
-    <div
-      class="grid grid-cols-1 gap-2 p-2"
-      :style="padding"
+
+    <button
+      v-if="isPWA"
+      class="btn btn-ghost btn-sm absolute top-14 right-2 z-10"
+      @click="refreshPages"
     >
-      <div class="flex flex-col gap-4">
+      <ArrowPathIcon class="h-4 w-4" />
+      {{ $t('refresh') }}
+    </button>
+
+    <!-- Content Area -->
+    <template v-if="isTwoColumns">
+      <div
+        class="mx-auto grid w-full max-w-7xl grid-cols-2 gap-12 p-3"
+        :style="padding"
+      >
         <div
-          v-for="item in menuItems"
-          :key="item.key"
-          :id="`item-${item.key}`"
-          :data-key="item.key"
-          class="card"
+          v-for="col in [0, 1]"
+          :key="col"
+          class="flex flex-col gap-3"
         >
           <div
-            class="settings-title mt-4 px-4"
-            v-if="![SETTINGS_MENU_KEY.general, SETTINGS_MENU_KEY.backend].includes(item.key)"
+            v-for="item in menuItems.filter((_, i) => columnAssignment[i] === col)"
+            :key="item.key"
+            :id="`item-${item.key}`"
+            :data-key="item.key"
+            class="mb-4 rounded-lg p-2 md:mb-6"
           >
-            {{ $t(item.label) }}
+            <div
+              class="mt-1 mb-3 px-1 text-lg font-semibold"
+              v-if="![SETTINGS_MENU_KEY.general, SETTINGS_MENU_KEY.backend].includes(item.key)"
+            >
+              {{ $t(item.label) }}
+            </div>
+            <component :is="item.component" />
           </div>
-          <component :is="item.component" />
         </div>
+      </div>
+    </template>
+    <div
+      v-else
+      class="mx-auto w-full max-w-3xl space-y-1 p-3 md:space-y-2 md:px-8 md:py-6"
+      :style="padding"
+    >
+      <div
+        v-for="item in menuItems"
+        :key="item.key"
+        :id="`item-${item.key}`"
+        :data-key="item.key"
+        class="mb-4 md:mb-6"
+      >
+        <div
+          class="mt-1 mb-3 px-1 text-lg font-semibold"
+          v-if="![SETTINGS_MENU_KEY.general, SETTINGS_MENU_KEY.backend].includes(item.key)"
+        >
+          {{ $t(item.label) }}
+        </div>
+        <component :is="item.component" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import BackendSettings from '@/components/settings/BackendSettings.vue'
-import ConnectionsSettings from '@/components/settings/ConnectionsSettings.vue'
-import GeneralSettings from '@/components/settings/GeneralSettings.vue'
-import OverviewSettings from '@/components/settings/OverviewSettings.vue'
-import ProxiesSettings from '@/components/settings/ProxiesSettings.vue'
-import SettingsMenu from '@/components/settings/SettingsMenu.vue'
+import SettingsMenu from '@/components/controls/SettingsCtrl.vue'
+import BackendSettings from '@/components/settings/backend/BackendSettings.vue'
+import ConnectionsSettings from '@/components/settings/connections/ConnectionsSettings.vue'
+import ZashboardSettings from '@/components/settings/general/ZashboardSettings.vue'
+import OverviewSettings from '@/components/settings/overview/OverviewSettings.vue'
+import ProxiesSettings from '@/components/settings/proxies/ProxiesSettings.vue'
 import { usePaddingForViews } from '@/composables/paddingViews'
 import { isSettingVisible } from '@/composables/settings'
 import { SETTINGS_MENU_KEY } from '@/constant'
+import { isPWA } from '@/helper/utils'
 import { settingsMenuOrder } from '@/store/settings'
 import {
+  ArrowPathIcon,
   ArrowsRightLeftIcon,
   CubeTransparentIcon,
   GlobeAltIcon,
   HomeIcon,
   ServerIcon,
 } from '@heroicons/vue/24/outline'
+import { useElementSize } from '@vueuse/core'
 import { throttle } from 'lodash'
 import type { Component } from 'vue'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -68,10 +107,12 @@ type MenuItem = {
 }
 
 const { padding } = usePaddingForViews()
+
 const route = useRoute()
 
-const menuComponentRef = ref<InstanceType<typeof SettingsMenu> | null>(null)
 const scrollContainerRef = ref<HTMLDivElement>()
+const { width } = useElementSize(scrollContainerRef)
+const isTwoColumns = computed(() => width.value >= 1000)
 const menuItems = computed<MenuItem[]>(() => {
   const itemsMap = new Map<SETTINGS_MENU_KEY, MenuItem>([
     [
@@ -80,7 +121,7 @@ const menuItems = computed<MenuItem[]>(() => {
         key: SETTINGS_MENU_KEY.general,
         label: 'zashboardSettings',
         icon: HomeIcon,
-        component: GeneralSettings,
+        component: ZashboardSettings,
       },
     ],
     [
@@ -128,6 +169,27 @@ const menuItems = computed<MenuItem[]>(() => {
 })
 const activeMenuKey = ref<SETTINGS_MENU_KEY>(menuItems.value[0]?.key || SETTINGS_MENU_KEY.general)
 
+const columnAssignment = ref<number[]>(menuItems.value.map((_, i) => i % 2))
+
+const rebalanceColumns = async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0)) // 等待 DOM 更新
+  const colHeights = [0, 0]
+  columnAssignment.value = menuItems.value.map((item) => {
+    const el = document.getElementById(`item-${item.key}`)
+    const h = el?.offsetHeight ?? 0
+    const col = colHeights[0] <= colHeights[1] ? 0 : 1
+    colHeights[col] += h
+    return col
+  })
+}
+
+watch(menuItems, () => {
+  columnAssignment.value = menuItems.value.map((_, i) => i % 2)
+  rebalanceColumns()
+})
+
+watch(isTwoColumns, rebalanceColumns)
+
 // 当 menuItems 变化时，如果当前激活的项被隐藏，则切换到第一个可见项
 watch(
   menuItems,
@@ -136,9 +198,6 @@ watch(
       if (!newItems.find((item) => item.key === activeMenuKey.value)) {
         activeMenuKey.value = newItems[0].key
       }
-    } else {
-      // 如果所有设置项都被隐藏，保持当前值（虽然不会显示）
-      // 这种情况应该很少见，因为至少应该有一个设置项可见
     }
   },
   { immediate: true },
@@ -149,6 +208,12 @@ const getItemRef = (key: SETTINGS_MENU_KEY) => {
 
 const isTriggerByClick = ref(false)
 const timeoutId = ref<number>()
+
+const flashElement = (el: HTMLElement) => {
+  el.classList.remove('highlight-flash')
+  el.classList.add('highlight-flash')
+  el.addEventListener('animationend', () => el.classList.remove('highlight-flash'), { once: true })
+}
 
 const handleMenuClick = (key: SETTINGS_MENU_KEY) => {
   activeMenuKey.value = key
@@ -165,45 +230,67 @@ const handleMenuClick = (key: SETTINGS_MENU_KEY) => {
       const containerRect = scrollContainerRef.value.getBoundingClientRect()
       const elementRect = element.getBoundingClientRect()
       const scrollTop = scrollContainerRef.value.scrollTop
-      const targetScrollTop = scrollTop + elementRect.top - containerRect.top - 86
+      const targetScrollTop = scrollTop + elementRect.top - containerRect.top - 54
 
       scrollContainerRef.value.scrollTo({
         top: targetScrollTop,
         behavior: 'smooth',
       })
+
+      if (isTwoColumns.value) {
+        setTimeout(() => flashElement(element), 300)
+      }
     }
   }
 }
 
 const scrollTop = ref(0)
 const updateActiveMenuByScroll = () => {
-  if (!scrollContainerRef.value || isTriggerByClick.value) return
+  if (!scrollContainerRef.value || isTriggerByClick.value || isTwoColumns.value) return
 
   const containerRect = scrollContainerRef.value.getBoundingClientRect()
   const newScrollTop = scrollContainerRef.value.scrollTop
-  const containerCenter =
-    containerRect.top + containerRect.height * (newScrollTop > scrollTop.value ? 0.8 : 0.3)
+  const scrollingDown = newScrollTop > scrollTop.value
+  const containerTop = containerRect.top
+  const containerBottom = containerRect.bottom
+  const containerHeight = containerRect.height
 
-  let minDistance = Infinity
-  let closestKey: SETTINGS_MENU_KEY | null = null
+  let bestKey: SETTINGS_MENU_KEY | null = null
+  let bestScore = -Infinity
 
   menuItems.value.forEach((item) => {
     const element = getItemRef(item.key)
     if (!element) return
 
     const elementRect = element.getBoundingClientRect()
-    const elementCenter = elementRect.top + elementRect.height / 2
-    const distance = Math.abs(elementCenter - containerCenter)
+    const visibleTop = Math.max(elementRect.top, containerTop)
+    const visibleBottom = Math.min(elementRect.bottom, containerBottom)
+    const visibleHeight = Math.max(0, visibleBottom - visibleTop)
 
-    if (distance < minDistance) {
-      minDistance = distance
-      closestKey = item.key
+    if (visibleHeight <= 0) return
+
+    // 元素自身的可见比例（对小元素更友好）
+    const selfRatio = visibleHeight / elementRect.height
+    // 元素占容器可见区域的比例
+    const containerRatio = visibleHeight / containerHeight
+    // 综合得分：优先考虑自身可见比例高的元素，其次考虑占容器比例
+    // 当小元素完全可见时 selfRatio=1，得分会很高
+    let score = selfRatio + containerRatio * 0.4
+
+    // 滚动方向偏好：偏向即将进入视口的元素
+    const elementCenter = (visibleTop + visibleBottom) / 2
+    const referencePoint = containerTop + containerHeight * (scrollingDown ? 0.6 : 0.4)
+    const normalizedDistance = Math.abs(elementCenter - referencePoint) / containerHeight
+    score -= normalizedDistance * 0.2
+
+    if (score > bestScore) {
+      bestScore = score
+      bestKey = item.key
     }
   })
 
-  // 如果找到了最近的元素，更新激活菜单
-  if (closestKey && closestKey !== activeMenuKey.value) {
-    activeMenuKey.value = closestKey
+  if (bestKey && bestKey !== activeMenuKey.value) {
+    activeMenuKey.value = bestKey
   }
 
   scrollTop.value = newScrollTop
@@ -211,7 +298,17 @@ const updateActiveMenuByScroll = () => {
 
 const handleScroll = throttle(updateActiveMenuByScroll, 100)
 
+const refreshPages = async () => {
+  const registrations = await navigator.serviceWorker.getRegistrations()
+
+  for (const registration of registrations) {
+    registration.unregister()
+  }
+  window.location.reload()
+}
+
 onMounted(() => {
+  rebalanceColumns()
   requestAnimationFrame(async () => {
     const scrollTo = route.query.scrollTo as SETTINGS_MENU_KEY
     if (scrollTo) {

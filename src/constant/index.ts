@@ -74,6 +74,12 @@ export enum PROXY_PREVIEW_TYPE {
   BAR = 'bar',
 }
 
+export enum CONNECTION_DISPLAY_STYLE {
+  AUTO = 'auto',
+  CARD = 'card',
+  TABLE = 'table',
+}
+
 export enum RULE_TAB_TYPE {
   RULES = 'rules',
   PROVIDER = 'ruleProvider',
@@ -199,42 +205,21 @@ export const DETAILED_CARD_STYLE = [
 export const ALL_THEME = [
   'light',
   'dark',
-  'light-legacy',
-  'dark-legacy',
   ...(window.ksu ? ['light-monet', 'dark-monet'] : []),
-  'cupcake',
-  'bumblebee',
-  'emerald',
-  'corporate',
-  'synthwave',
-  'retro',
-  'cyberpunk',
-  'valentine',
   'halloween',
-  'garden',
   'forest',
-  'aqua',
   'lofi',
-  'pastel',
-  'fantasy',
   'wireframe',
   'black',
-  'luxury',
   'dracula',
-  'cmyk',
-  'autumn',
   'business',
-  'acid',
-  'lemonade',
   'night',
-  'coffee',
-  'winter',
   'dim',
   'nord',
   'sunset',
-  'caramellatte',
   'abyss',
-  'silk',
+  'cupcake',
+  'dark-daisyui5',
 ]
 
 export const DEFAULT_THEME = {

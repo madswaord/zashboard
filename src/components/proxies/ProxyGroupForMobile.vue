@@ -10,7 +10,7 @@
       class="bg-base-300/50 fixed inset-0 z-40 overflow-hidden"
     />
     <div
-      class="card absolute overflow-hidden transition-[width,transform,max-height] duration-200 ease-out will-change-transform"
+      class="base-container absolute flex flex-col overflow-hidden transition-[width,transform,max-height] duration-200 ease-out will-change-transform"
       :class="modalMode && blurIntensity < 5 && 'backdrop-blur-sm!'"
       :style="cardStyle"
       @contextmenu.prevent.stop="handlerLatencyTest"
@@ -28,7 +28,7 @@
           class="text-base-content/60 truncate text-xs"
           :class="proxyGroup.icon && 'pr-10'"
         >
-          {{ proxyGroup.type }} ({{ proxiesCount }})
+          {{ proxyGroup.type }} · {{ proxiesCount }}
         </div>
         <div class="flex items-center">
           <div class="flex flex-1 items-center gap-1 truncate">
@@ -71,9 +71,9 @@
       <div
         v-if="displayContent"
         class="will-change-opacity max-h-108 overflow-y-auto overscroll-contain p-2 transition-opacity duration-200 ease-out"
-        :class="[SCROLLABLE_PARENT_CLASS]"
+        :class="[PROXIES_PARENT_CLASS]"
         :style="{
-          width: 'calc(100vw - 1rem)',
+          width: WIDTH_STYLE,
           opacity: contentOpacity,
           contain: 'layout style paint',
         }"
@@ -94,7 +94,7 @@ import { useBounceOnVisible } from '@/composables/bouncein'
 import { disableProxiesPageScroll } from '@/composables/proxies'
 import { useRenderProxies } from '@/composables/renderProxies'
 import { isHiddenGroup } from '@/helper'
-import { SCROLLABLE_PARENT_CLASS } from '@/helper/utils'
+import { PROXIES_PARENT_CLASS } from '@/helper/utils'
 import { hiddenGroupMap, proxyGroupLatencyTest, proxyMap } from '@/store/proxies'
 import { blurIntensity, groupProxiesByProvider, manageHiddenGroup } from '@/store/settings'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
@@ -106,6 +106,7 @@ import ProxiesContent from './ProxiesContent.vue'
 import ProxyGroupNow from './ProxyGroupNow.vue'
 import ProxyIcon from './ProxyIcon.vue'
 
+const WIDTH_STYLE = 'calc(100vw - 1.5rem)'
 const props = defineProps<{
   name: string
 }>()
@@ -191,7 +192,7 @@ const calcCardStyle = () => {
     }
 
     cardStyle.value = {
-      width: 'calc(100vw - 1rem)',
+      width: WIDTH_STYLE,
       maxHeight: `${innerHeight - verticalOffset - 112}px`,
       transform: `translate3d(0, ${transformValueY}px, 0) scale(1)`,
       transformOrigin,

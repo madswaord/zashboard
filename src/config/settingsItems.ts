@@ -13,12 +13,36 @@ export type SettingsCategory = {
 
 export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   {
+    key: SETTINGS_MENU_KEY.backend,
+    label: 'backendSettings',
+    items: [
+      { key: `${SETTINGS_MENU_KEY.backend}.backendSwitch`, label: 'backend' },
+      { key: `${SETTINGS_MENU_KEY.backend}.actions`, label: 'actions' },
+      { key: `${SETTINGS_MENU_KEY.backend}.dnsQuery`, label: 'DNSQuery' },
+      { key: `${SETTINGS_MENU_KEY.backend}.ports`, label: 'ports' },
+      { key: `${SETTINGS_MENU_KEY.backend}.tunMode`, label: 'tunMode' },
+      { key: `${SETTINGS_MENU_KEY.backend}.allowLan`, label: 'allowLan' },
+      { key: `${SETTINGS_MENU_KEY.backend}.checkCoreUpgrade`, label: 'checkCoreUpgrade' },
+      { key: `${SETTINGS_MENU_KEY.backend}.autoUpgradeCore`, label: 'autoUpgradeCore' },
+    ],
+  },
+  {
     key: SETTINGS_MENU_KEY.general,
     label: 'zashboardSettings',
     items: [
-      { key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.language`, label: 'language' },
-      { key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.fonts`, label: 'fonts' },
-      { key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.emoji`, label: 'emoji' },
+      { key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.actions`, label: 'actions' },
+      {
+        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.autoSwitchTheme`,
+        label: 'autoSwitchTheme',
+      },
+      {
+        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.defaultTheme`,
+        label: 'defaultTheme',
+      },
+      {
+        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.darkTheme`,
+        label: 'darkTheme',
+      },
       {
         key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.customBackgroundURL`,
         label: 'customBackgroundURL',
@@ -31,33 +55,12 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.blurIntensity`,
         label: 'blurIntensity',
       },
+      { key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.fonts`, label: 'fonts' },
+      { key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.emoji`, label: 'emoji' },
+      { key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.language`, label: 'language' },
       {
-        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.defaultTheme`,
-        label: 'defaultTheme',
-      },
-      {
-        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.darkTheme`,
-        label: 'darkTheme',
-      },
-      {
-        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.autoSwitchTheme`,
-        label: 'autoSwitchTheme',
-      },
-      {
-        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.autoUpgrade`,
-        label: 'autoUpgrade',
-      },
-      {
-        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.upgradeUI`,
-        label: 'upgradeUI',
-      },
-      {
-        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.exportSettings`,
-        label: 'exportSettings',
-      },
-      {
-        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.importSettings`,
-        label: 'importSettings',
+        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.autoUpgradeDashboard`,
+        label: 'autoUpgradeDashboard',
       },
       {
         key: `${SETTINGS_MENU_KEY.general}.autoDisconnectIdleUDP`,
@@ -107,20 +110,6 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         key: `${SETTINGS_MENU_KEY.overview}.numberOfChartsInSidebar`,
         label: 'numberOfChartsInSidebar',
       },
-    ],
-  },
-  {
-    key: SETTINGS_MENU_KEY.backend,
-    label: 'backendSettings',
-    items: [
-      { key: `${SETTINGS_MENU_KEY.backend}.backendSwitch`, label: 'backend' },
-      { key: `${SETTINGS_MENU_KEY.backend}.ports`, label: 'ports' },
-      { key: `${SETTINGS_MENU_KEY.backend}.tunMode`, label: 'tunMode' },
-      { key: `${SETTINGS_MENU_KEY.backend}.allowLan`, label: 'allowLan' },
-      { key: `${SETTINGS_MENU_KEY.backend}.checkUpgrade`, label: 'checkUpgrade' },
-      { key: `${SETTINGS_MENU_KEY.backend}.autoUpgrade`, label: 'autoUpgrade' },
-      { key: `${SETTINGS_MENU_KEY.backend}.actions`, label: 'actions' },
-      { key: `${SETTINGS_MENU_KEY.backend}.dnsQuery`, label: 'DNSQuery' },
     ],
   },
   {

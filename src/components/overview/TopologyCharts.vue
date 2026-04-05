@@ -1,10 +1,12 @@
 <template>
-  <div class="card">
-    <div class="card-title absolute px-4 pt-4">
-      {{ $t('connectionTopology') }}
+  <div class="base-container p-4">
+    <div class="flex items-center justify-between">
+      <div class="text-base-content/60 text-xs font-semibold tracking-wider uppercase">
+        {{ $t('connectionTopology') }}
+      </div>
     </div>
     <div
-      :class="twMerge('relative h-96 w-full overflow-hidden pt-12')"
+      :class="twMerge('bg-base-200/30 relative mt-4 h-96 w-full overflow-hidden rounded-xl')"
       @mousemove.stop
       @touchmove.stop
     >
@@ -158,18 +160,23 @@ const sankeyData = computed(() => {
   }
 
   const nodeMap = new Map<string, number>()
+  const nodeNameMap = new Map<string, string>()
   const linkMap = new Map<string, number>()
   const layerMap = new Map<string, number>()
   const nodeTypeMap = new Map<string, string>()
   let nodeIndex = 0
 
   const addNode = (name: string, layer: number, type: string) => {
-    if (!nodeMap.has(name)) {
-      nodeMap.set(name, nodeIndex++)
-      layerMap.set(name, layer)
-      nodeTypeMap.set(name, type)
+    // 同名节点在不同层需要视为不同节点，否则会在 Sankey 中形成错误回路
+    const nodeKey = `${layer}:${name}`
+
+    if (!nodeMap.has(nodeKey)) {
+      nodeMap.set(nodeKey, nodeIndex++)
+      nodeNameMap.set(nodeKey, name)
+      layerMap.set(nodeKey, layer)
+      nodeTypeMap.set(nodeKey, type)
     }
-    return nodeMap.get(name)!
+    return nodeMap.get(nodeKey)!
   }
 
   connections.forEach((conn) => {
@@ -208,13 +215,13 @@ const sankeyData = computed(() => {
   })
 
   // 创建初始节点数组
-  const initialNodes = Array.from(nodeMap.entries()).map(([name, index]) => ({
+  const initialNodes = Array.from(nodeMap.entries()).map(([nodeKey, index]) => ({
     id: index,
-    name: name,
-    nodeType: nodeTypeMap.get(name) || t('unknown'),
-    layer: layerMap.get(name) || 0,
+    name: nodeNameMap.get(nodeKey) || '',
+    nodeType: nodeTypeMap.get(nodeKey) || t('unknown'),
+    layer: layerMap.get(nodeKey) || 0,
     itemStyle: {
-      color: layerColors[layerMap.get(name) || 0],
+      color: layerColors[layerMap.get(nodeKey) || 0],
     },
   }))
 
@@ -250,20 +257,27 @@ const sankeyData = computed(() => {
   })
 
   // 更新 links 中的 source 和 target 引用
-  const links = Array.from(linkMap.entries()).map(([link, value]) => {
-    const [oldSource, oldTarget] = link.split('-').map(Number)
-    const source = idMapping.get(oldSource)!
-    const target = idMapping.get(oldTarget)!
-    // 使用对数缩放来压缩数据范围，使小值更明显
-    // 公式: log10(value + 1) * 10，确保最小值为0，同时保持相对大小关系
-    const scaledValue = Math.log10(value + 1) * 10
-    return {
-      source,
-      target,
-      value: scaledValue,
-      originalValue: value, // 保存原始值用于 tooltip 显示
-    }
-  })
+  const links = Array.from(linkMap.entries())
+    .map(([link, value]) => {
+      const [oldSource, oldTarget] = link.split('-').map(Number)
+      const source = idMapping.get(oldSource)
+      const target = idMapping.get(oldTarget)
+
+      if (source === undefined || target === undefined || source === target) {
+        return null
+      }
+
+      // 使用对数缩放来压缩数据范围，使小值更明显
+      // 公式: log10(value + 1) * 10，确保最小值为0，同时保持相对大小关系
+      const scaledValue = Math.log10(value + 1) * 10
+      return {
+        source,
+        target,
+        value: scaledValue,
+        originalValue: value, // 保存原始值用于 tooltip 显示
+      }
+    })
+    .filter((link): link is NonNullable<typeof link> => link !== null)
 
   return { nodes: sortedNodes, links }
 })

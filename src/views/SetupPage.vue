@@ -9,7 +9,7 @@
     <div class="absolute right-4 bottom-4 max-sm:hidden">
       <LanguageSelect />
     </div>
-    <div class="card mx-auto w-96 max-w-[90%] gap-3 px-6 py-2 max-sm:my-4">
+    <div class="base-container mx-auto flex w-96 max-w-[90%] flex-col gap-3 px-6 py-2 max-sm:my-4">
       <h1 class="text-2xl font-semibold">{{ $t('setup') }}</h1>
       <div class="flex flex-col gap-1">
         <label class="text-sm">
@@ -138,8 +138,8 @@
 <script setup lang="ts">
 import ImportSettings from '@/components/common/ImportSettings.vue'
 import TextInput from '@/components/common/TextInput.vue'
-import EditBackendModal from '@/components/settings/EditBackendModal.vue'
-import LanguageSelect from '@/components/settings/LanguageSelect.vue'
+import EditBackendModal from '@/components/settings/backend/EditBackendModal.vue'
+import LanguageSelect from '@/components/settings/general/LanguageSelect.vue'
 import { ROUTE_NAME } from '@/constant'
 import { showNotification } from '@/helper/notification'
 import { getBackendFromUrl, getLabelFromBackend, getUrlFromBackend } from '@/helper/utils'

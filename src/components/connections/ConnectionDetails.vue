@@ -2,13 +2,14 @@
   <DialogWrapper
     v-model="connectionDetailModalShow"
     :title="$t('connectionDetails')"
+    :no-padding="true"
     :box-class="proxyChainStart ? `max-w-256` : `max-w-128`"
   >
-    <div class="flex flex-col md:flex-row">
-      <div class="md:w-128">
+    <div class="flex flex-col md:h-[70dvh] md:max-h-[70dvh] md:flex-row md:overflow-hidden">
+      <div class="flex flex-1 flex-col overflow-hidden p-4">
         <VueJsonPretty
           :data="infoConn"
-          class="overflow-y-auto"
+          class="flex-1 overflow-y-auto"
         >
           <template #renderNodeValue="{ node, defaultValue }">
             <template v-if="node.path.startsWith('root.chains') && proxyMap[node.content]?.icon">
@@ -62,8 +63,21 @@
       </div>
       <template v-if="proxyChainStart">
         <div class="divider md:divider-horizontal m-0"></div>
-        <div class="md:w-128">
-          <ProxyChains :name="proxyChainStart" />
+        <div class="flex flex-1 flex-col">
+          <div class="shrink-0 p-3">
+            <ProxyChainPath
+              :proxy="proxyChainStart"
+              :selected="selectedProxy"
+              :show-now-node="true"
+              :show-latency="true"
+              @update:selected="selectedProxy = $event"
+            />
+          </div>
+          <ProxyGroup
+            :name="selectedProxy || proxyChainStart"
+            :force-open="true"
+            class="transparent-collapse rounded-none!"
+          />
         </div>
       </template>
     </div>
@@ -73,6 +87,8 @@
 <script setup lang="ts">
 import { getIPInfo, type IPInfo } from '@/api/geoip'
 import DialogWrapper from '@/components/common/DialogWrapper.vue'
+import ProxyChainPath from '@/components/common/ProxyChainPath.vue'
+import ProxyGroup from '@/components/proxies/ProxyGroup.vue'
 import { useConnections } from '@/composables/connections'
 import { proxyMap } from '@/store/proxies'
 import { ArrowRightCircleIcon, MapPinIcon, ServerIcon } from '@heroicons/vue/24/outline'
@@ -81,11 +97,11 @@ import { last } from 'lodash'
 import { computed, ref, watch } from 'vue'
 import VueJsonPretty from 'vue-json-pretty'
 import 'vue-json-pretty/lib/styles.css'
-import ProxyChains from '../common/ProxyChains.vue'
 import ProxyIcon from '../proxies/ProxyIcon.vue'
 
 const { infoConn, connectionDetailModalShow } = useConnections()
 const details = ref<IPInfo | null>(null)
+const selectedProxy = ref('')
 
 const destinationIP = computed(() => infoConn.value?.metadata.destinationIP)
 const isPrivateIP = computed(() => {
@@ -106,6 +122,14 @@ const proxyChainStart = computed(() => {
 
   return last(infoConn.value.chains)
 })
+
+watch(
+  () => proxyChainStart.value,
+  (name) => {
+    selectedProxy.value = name || ''
+  },
+  { immediate: true },
+)
 
 watch(
   () => destinationIP.value,

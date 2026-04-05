@@ -1,31 +1,30 @@
 <template>
-  <div class="card hover:bg-base-200 w-full gap-2 p-2 text-sm">
-    <div class="flex h-6 items-center gap-2 leading-6">
-      <span>{{ index }}.</span>
-      <span class="text-main">{{ ruleProvider.name }}</span>
-      <span class="text-base-content/80 text-xs"> ({{ ruleProvider.ruleCount }}) </span>
+  <div class="scroller-item hover:bg-base-200/40 px-4 py-2.5 sm:flex sm:items-center sm:gap-4">
+    <div class="flex min-w-0 items-center gap-2 sm:flex-1">
+      <span class="text-base-content/50 shrink-0 text-xs tabular-nums">{{ index }}</span>
+      <span class="min-w-0 truncate text-sm">{{ ruleProvider.name }}</span>
+      <span class="text-base-content/50 shrink-0 text-xs tabular-nums">
+        · {{ ruleProvider.ruleCount }} {{ $t('rules') }}
+      </span>
+    </div>
+    <div class="text-base-content/50 mt-1.5 flex items-center gap-1.5 text-xs sm:mt-0">
+      <span v-if="ruleProvider.behavior">{{ ruleProvider.behavior }}</span>
+      <span v-if="ruleProvider.behavior && ruleProvider.vehicleType">·</span>
+      <span v-if="ruleProvider.vehicleType">{{ ruleProvider.vehicleType }}</span>
+    </div>
+    <div class="mt-1 flex items-center justify-between sm:mt-0 sm:shrink-0">
+      <span class="text-base-content/50 text-xs">
+        {{ $t('updated') }} {{ fromNow(ruleProvider.updatedAt) }}
+      </span>
       <button
         v-if="ruleProvider.vehicleType !== 'Inline'"
-        :class="twMerge('btn btn-circle btn-xs btn-ghost', isUpdating ? 'animate-spin' : '')"
+        :class="
+          twMerge('btn btn-circle btn-ghost btn-xs sm:ml-1.5', isUpdating ? 'animate-spin' : '')
+        "
         @click="updateRuleProviderClickHandler"
       >
-        <ArrowPathIcon class="h-4 w-4" />
+        <ArrowPathIcon class="h-3.5 w-3.5 opacity-60" />
       </button>
-    </div>
-    <div class="text-base-content/80 flex h-5 items-center gap-2 text-xs">
-      <span
-        v-if="ruleProvider.behavior"
-        class="badge badge-sm min-w-16"
-      >
-        {{ ruleProvider.behavior }}
-      </span>
-      <span
-        v-if="ruleProvider.vehicleType"
-        class="badge badge-sm min-w-12"
-      >
-        {{ ruleProvider.vehicleType }}
-      </span>
-      <span>{{ $t('updated') }} {{ fromNow(ruleProvider.updatedAt) }}</span>
     </div>
   </div>
 </template>

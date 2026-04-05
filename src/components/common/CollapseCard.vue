@@ -16,8 +16,8 @@
     >
       <div
         v-if="showContent"
-        class="max-h-108 overflow-y-auto p-4 pt-0 max-md:p-2"
-        :class="[SCROLLABLE_PARENT_CLASS, !showCollapse && 'opacity-0']"
+        class="max-h-108 overflow-y-auto p-4 pt-0"
+        :class="[PROXIES_PARENT_CLASS, !showCollapse && 'opacity-0']"
       >
         <slot name="content" />
       </div>
@@ -26,20 +26,23 @@
 </template>
 
 <script setup lang="ts">
-import { SCROLLABLE_PARENT_CLASS } from '@/helper/utils'
+import { PROXIES_PARENT_CLASS } from '@/helper/utils'
 import { collapseGroupMap } from '@/store/settings'
 import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   name: string
+  forceOpen?: boolean
 }>()
 
 const showCollapse = computed({
   get() {
-    return collapseGroupMap.value[props.name]
+    return props.forceOpen || collapseGroupMap.value[props.name]
   },
   set(value) {
-    collapseGroupMap.value[props.name] = value
+    if (!props.forceOpen) {
+      collapseGroupMap.value[props.name] = value
+    }
   },
 })
 
