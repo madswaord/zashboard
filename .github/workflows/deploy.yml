@@ -94,11 +94,11 @@ jobs:
           zip -r dist${{ matrix.font.suffix }}.zip dist
 
       - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v3
-        with:
-          files: dist${{ matrix.font.suffix }}.zip
-          tag_name: ${{ needs.release.outputs.tag_name }}
-          overwrite_files: true
+        env:
+          GH_TOKEN: ${{ secrets.PAT || github.token }}
+        run: |
+          gh release upload "${{ needs.release.outputs.tag_name }}" \
+            "dist${{ matrix.font.suffix }}.zip" --clobber
 
   release-image:
     needs: release
