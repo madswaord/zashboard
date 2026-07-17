@@ -119,7 +119,6 @@ import { proxiesTabShow } from '@/assembly/proxies'
 import { fetchRules, rulesTabShow } from '@/assembly/rules'
 import { isSidebarCollapsed } from '@/store/settings'
 import { activeBackend, activeUuid, backendList } from '@/store/setup'
-import { initWorldTrafficMap } from '@/store/worldTrafficMap'
 import type { Backend } from '@/types'
 import { useDocumentVisibility, useElementBounding } from '@vueuse/core'
 import { ref, watch } from 'vue'
@@ -173,7 +172,6 @@ watch(
     initConnections()
     initLogs()
     initSatistic()
-    initWorldTrafficMap()
   },
   {
     immediate: true,

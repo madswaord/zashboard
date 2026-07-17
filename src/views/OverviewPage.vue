@@ -7,7 +7,7 @@
     <div class="flex flex-col gap-3 p-3">
       <component
         v-for="item in visibleCards"
-        :key="item"
+        :key="item.card"
         :is="cardComponents[item.card]"
       />
     </div>
@@ -24,6 +24,7 @@ import RuleHitCountCard from '@/components/overview/RuleHitCountCard.vue'
 import TopologyCharts from '@/components/overview/TopologyCharts.vue'
 import WorldTrafficMapCard from '@/components/overview/WorldTrafficMapCard.vue'
 import { usePaddingForViews } from '@/composables/paddingViews'
+import { FLIGHTROUTE_OVERVIEW_CARD } from '@/modules/flightroute/overview'
 import { overviewCardOrder } from '@/store/settings'
 import type { Component } from 'vue'
 import { computed } from 'vue'
@@ -33,12 +34,7 @@ const { padding } = usePaddingForViews({
   offsetBottom: 0,
 })
 const visibleCards = computed(() => {
-  const cards = overviewCardOrder.value.filter((card) => card.visible)
-  return cards.sort((a, b) => {
-    if (a.card === 'WorldTrafficMap') return -1
-    if (b.card === 'WorldTrafficMap') return 1
-    return 0
-  })
+  return overviewCardOrder.value.filter((card) => card.visible)
 })
 
 const cardComponents: Record<string, Component> = {
@@ -46,7 +42,7 @@ const cardComponents: Record<string, Component> = {
   NetworkCard,
   ProviderTrafficOverview,
   TopologyCharts,
-  WorldTrafficMap: WorldTrafficMapCard,
+  [FLIGHTROUTE_OVERVIEW_CARD]: WorldTrafficMapCard,
   ConnectionHistory,
   RuleHitCountCard,
 }

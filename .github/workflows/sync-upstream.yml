@@ -1,0 +1,86 @@
+name: Sync upstream Zashboard
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'madswaord/zashboard'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out fork
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Fetch upstream
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git remote add upstream https://github.com/Zephyruso/zashboard.git
+          git fetch --prune upstream main
+
+      - name: Check for updates
+        id: upstream
+        run: |
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Merge upstream
+        if: steps.upstream.outputs.changed == 'true'
+        run: git merge --no-ff --no-commit upstream/main
+
+      - name: Verify upstream version
+        if: steps.upstream.outputs.changed == 'true'
+        id: version
+        run: |
+          upstream_version="$(git show upstream/main:package.json | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version")"
+          current_version="$(node -p "require('./package.json').version")"
+          test "$current_version" = "$upstream_version"
+          echo "value=$current_version" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        if: steps.upstream.outputs.changed == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        if: steps.upstream.outputs.changed == 'true'
+        run: pnpm type-check
+
+      - name: Build
+        if: steps.upstream.outputs.changed == 'true'
+        run: pnpm build
+
+      - name: Commit update
+        if: steps.upstream.outputs.changed == 'true'
+        run: |
+          git commit -m "chore: sync upstream zashboard v${{ steps.version.outputs.value }}"
+
+      - name: Push verified update
+        if: steps.upstream.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PAT || github.token }}
+        run: |
+          gh auth setup-git
+          git push origin HEAD:main

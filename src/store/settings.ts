@@ -27,9 +27,17 @@ import {
   type THEME,
 } from '@/constant'
 import { getMinCardWidth, isMiddleScreen, isPreferredDark } from '@/helper/utils'
+import {
+  ensureFlightRouteOverviewCard,
+  normalizeOverviewCardOrder,
+  type FlightRouteOverviewCard,
+  type OverviewCardItem,
+} from '@/modules/flightroute/overview'
 import type { SourceIPLabel } from '@/types'
 import { useStorage } from '@vueuse/core'
 import { computed } from 'vue'
+
+export type OverviewCardKey = OVERVIEW_CARD | FlightRouteOverviewCard
 
 const migrateLegacyStorageKey = (legacyKey: string, nextKey: string) => {
   if (typeof window === 'undefined') {
@@ -51,33 +59,6 @@ migrateLegacyStorageKey('config/connecticon-table-size', 'config/connection-tabl
 migrateLegacyStorageKey('config/ipv6-map', 'cache/ipv6-map')
 migrateLegacyStorageKey('config/collapse-group-map', 'cache/collapse-group-map')
 migrateLegacyStorageKey('config/log-search-history', 'cache/log-search-history')
-
-const migrateLegacyConnectionDisplayStyle = () => {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  const nextKey = 'config/connection-display-style'
-  const nextValue = localStorage.getItem(nextKey)
-  const legacyKey = 'config/use-connection-card'
-
-  if (nextValue !== null) {
-    return
-  }
-
-  const legacyValue = localStorage.getItem(legacyKey)
-
-  if (legacyValue === 'true' || legacyValue === 'false') {
-    localStorage.setItem(
-      nextKey,
-      legacyValue === 'true' ? CONNECTION_DISPLAY_STYLE.CARD : CONNECTION_DISPLAY_STYLE.TABLE,
-    )
-  }
-
-  localStorage.removeItem(legacyKey)
-}
-
-migrateLegacyConnectionDisplayStyle()
 
 const migrateLegacyConnectionDisplayStyle = () => {
   if (typeof window === 'undefined') {
@@ -203,11 +184,7 @@ export const numberOfChartsInSidebar = useStorage<1 | 2 | 3>(
   'config/number-of-charts-in-sidebar',
   2,
 )
-const defaultOverviewCardOrder: { card: OVERVIEW_CARD; visible: boolean }[] = [
-  {
-    card: OVERVIEW_CARD.WorldTrafficMap,
-    visible: true,
-  },
+const defaultOverviewCardOrder: OverviewCardItem[] = [
   {
     card: OVERVIEW_CARD.ChartsCard,
     visible: true,
@@ -234,21 +211,15 @@ const defaultOverviewCardOrder: { card: OVERVIEW_CARD; visible: boolean }[] = [
   },
 ]
 
-export const overviewCardOrder = useStorage<{ card: OVERVIEW_CARD; visible: boolean }[]>(
+export const overviewCardOrder = useStorage<OverviewCardItem[]>(
   'config/overview-card-order',
   defaultOverviewCardOrder,
 )
 
-// 确保所有卡片都在配置中，缺失的卡片添加到末尾
-const dedupedOverviewCardOrder = overviewCardOrder.value.filter((item, index, arr) => {
-  return arr.findIndex((candidate) => candidate.card === item.card) === index
-})
-if (dedupedOverviewCardOrder.length !== overviewCardOrder.value.length) {
-  overviewCardOrder.value = dedupedOverviewCardOrder
-}
+let normalizedOverviewCardOrder = normalizeOverviewCardOrder(overviewCardOrder.value)
 
-const allCardTypes = Object.values(OVERVIEW_CARD)
-const existingCardTypes = new Set(overviewCardOrder.value.map((item) => item.card))
+const allCardTypes = Object.values(OVERVIEW_CARD) as OverviewCardKey[]
+const existingCardTypes = new Set(normalizedOverviewCardOrder.map((item) => item.card))
 const missingCards = allCardTypes.filter((card) => !existingCardTypes.has(card))
 
 if (missingCards.length > 0) {
@@ -256,7 +227,13 @@ if (missingCards.length > 0) {
     card,
     visible: true,
   }))
-  overviewCardOrder.value = [...overviewCardOrder.value, ...newCards]
+  normalizedOverviewCardOrder = [...normalizedOverviewCardOrder, ...newCards]
+}
+
+const ensuredOverviewCardOrder = ensureFlightRouteOverviewCard(normalizedOverviewCardOrder)
+
+if (JSON.stringify(ensuredOverviewCardOrder) !== JSON.stringify(overviewCardOrder.value)) {
+  overviewCardOrder.value = ensuredOverviewCardOrder
 }
 
 // proxies

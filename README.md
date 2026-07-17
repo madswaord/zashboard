@@ -1,5 +1,9 @@
 # zashboard
 
+This fork keeps FlightRoute as an independently versioned Git dependency. The application version
+is inherited directly from upstream Zashboard, and `.github/workflows/sync-upstream.yml` checks for
+official updates daily, then merges and pushes them only after type-checking and a production build.
+
 <p align="center">
   <img src="./readme/pc.png" height="300">
   <img src="./readme/mobile.png" height="300">

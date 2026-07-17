@@ -39,9 +39,6 @@ export default defineConfig({
     vueJsx(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-      },
       includeAssets: ['favicon.svg', 'favicon-dark.svg'],
       workbox: {
         // The bundle is above Workbox's 2 MiB default because sing-box native

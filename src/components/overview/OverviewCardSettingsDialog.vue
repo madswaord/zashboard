@@ -9,13 +9,17 @@
         :animation="150"
         ghost-class="ghost"
         handle=".drag-handle"
-        :item-key="(card: string) => card"
+        :item-key="getCardKey"
       >
         <template #item="{ element: cardKey }">
           <div class="setting-item mb-2">
             <Bars3Icon class="drag-handle text-base-content/50 h-5 w-5 shrink-0 cursor-move" />
             <div class="setting-item-label">
-              {{ $t(cardKeyToLabelMap[cardKey.card] || cardKey.card) }}
+              {{
+                cardKey.card === FLIGHTROUTE_OVERVIEW_CARD
+                  ? 'FlightRoute'
+                  : $t(cardKeyToLabelMap[cardKey.card] || cardKey.card)
+              }}
             </div>
             <input
               type="checkbox"
@@ -32,27 +36,27 @@
 
 <script setup lang="ts">
 import DialogWrapper from '@/components/common/DialogWrapper.vue'
-import { OVERVIEW_CARD } from '@/constant'
+import { FLIGHTROUTE_OVERVIEW_CARD, type OverviewCardItem } from '@/modules/flightroute/overview'
 import { overviewCardOrder } from '@/store/settings'
 import { Bars3Icon } from '@heroicons/vue/24/outline'
 import { computed } from 'vue'
 import Draggable from 'vuedraggable'
 
 const isOpen = defineModel<boolean>({ required: true })
+const getCardKey = (item: OverviewCardItem) => item.card
 
 const cardKeyToLabelMap: Record<string, string> = {
   ChartsCard: 'chartsCard',
   NetworkCard: 'networkCard',
   ProviderTrafficOverview: 'providerTrafficOverview',
   TopologyCharts: 'topologyCharts',
-  WorldTrafficMap: 'globalRouteMatrix',
   ConnectionHistory: 'connectionHistory',
   RuleHitCountCard: 'ruleHitCountCard',
 }
 
 const orderedCards = computed({
   get: () => overviewCardOrder.value,
-  set: (newOrder: { card: OVERVIEW_CARD; visible: boolean }[]) => {
+  set: (newOrder: OverviewCardItem[]) => {
     overviewCardOrder.value = newOrder
   },
 })

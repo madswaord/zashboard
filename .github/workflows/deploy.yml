@@ -10,23 +10,33 @@ permissions:
   pull-requests: write
 
 jobs:
-  release-please:
+  release:
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
 
     steps:
-      - name: release-please
+      - uses: actions/checkout@v6
+
+      - name: Create version-matched release
         id: release
-        uses: googleapis/release-please-action@v5
-        with:
-          token: ${{ secrets.PAT }}
-          release-type: node
-          target-branch: main
+        env:
+          GH_TOKEN: ${{ secrets.PAT || github.token }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          tag_name="v$version"
+          echo "tag_name=$tag_name" >> "$GITHUB_OUTPUT"
+
+          if gh release view "$tag_name" >/dev/null 2>&1; then
+            echo 'release_created=false' >> "$GITHUB_OUTPUT"
+          else
+            gh release create "$tag_name" --target "$GITHUB_SHA" --title "$tag_name" --generate-notes
+            echo 'release_created=true' >> "$GITHUB_OUTPUT"
+          fi
 
   build-and-deploy:
-    needs: release-please
+    needs: release
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -51,7 +61,6 @@ jobs:
         run: |
           pnpm i
           pnpm run build
-          echo 'board.zash.run.place' > ./dist/CNAME
 
       - name: Deploy 🚀
         uses: peaceiris/actions-gh-pages@v4
@@ -62,9 +71,9 @@ jobs:
           force_orphan: true
 
   release-dist:
-    needs: release-please
+    needs: release
     runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ needs.release.outputs.release_created == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -93,12 +102,12 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: dist${{ matrix.font.suffix }}.zip
-          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          tag_name: ${{ needs.release.outputs.tag_name }}
 
   release-image:
-    needs: release-please
+    needs: release
     runs-on: ubuntu-latest
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ needs.release.outputs.release_created == 'true' }}
     steps:
       - uses: actions/checkout@v6
 
@@ -125,7 +134,7 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: |
-            ghcr.io/zephyruso/zashboard:latest
-            ghcr.io/zephyruso/zashboard:${{ needs.release-please.outputs.tag_name }}
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ needs.release.outputs.tag_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

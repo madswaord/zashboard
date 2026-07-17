@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { networkChinaInfo, networkGlobalInfo, refreshNetworkInfo } from '@/composables/networkInfo'
+import { getIPFromIpipnetAPI, getIPInfo } from '@/api/geoip'
 import { ipForChina, ipForGlobal } from '@/composables/overview'
 import { useTooltip } from '@/helper/tooltip'
 import { autoIPCheck, IPInfoAPI } from '@/store/settings'
@@ -95,51 +95,27 @@ const getIPs = () => {
   ipForGlobal.value = {
     ...QUERYING_IP_INFO,
   }
-
-  refreshNetworkInfo()
-    .then(() => {
-      if (networkGlobalInfo.value) {
-        ipForGlobal.value = {
-          ipWithPrivacy: [
-            `${networkGlobalInfo.value.country || ''} ${networkGlobalInfo.value.organization || ''}`.trim(),
-            networkGlobalInfo.value.ip,
-          ],
-          ip: [
-            `${networkGlobalInfo.value.country || ''} ${networkGlobalInfo.value.organization || ''}`.trim(),
-            '***.***.***.***',
-          ],
-        }
-      } else {
-        ipForGlobal.value = {
-          ...FAILED_IP_INFO,
-        }
+  getIPInfo()
+    .then((res) => {
+      ipForGlobal.value = {
+        ipWithPrivacy: [`${res.country} ${res.organization}`, res.ip],
+        ip: [`${res.country} ${res.organization}`, '***.***.***.***'],
       }
-
-      if (networkChinaInfo.value) {
-        ipForChina.value = {
-          ipWithPrivacy: [
-            [
-              networkChinaInfo.value.country,
-              networkChinaInfo.value.region,
-              networkChinaInfo.value.city,
-            ]
-              .filter(Boolean)
-              .join(' '),
-            networkChinaInfo.value.ip,
-          ],
-          ip: [`${networkChinaInfo.value.country || ''} ** ** **`, '***.***.***.***'],
-        }
-      } else {
-        ipForChina.value = {
-          ...FAILED_IP_INFO,
-        }
+    })
+    .catch(() => {
+      ipForGlobal.value = {
+        ...FAILED_IP_INFO,
+      }
+    })
+  getIPFromIpipnetAPI()
+    .then((res) => {
+      ipForChina.value = {
+        ipWithPrivacy: [res.data.location.join(' '), res.data.ip],
+        ip: [`${res.data.location[0]} ** ** **`, '***.***.***.***'],
       }
     })
     .catch(() => {
       ipForChina.value = {
-        ...FAILED_IP_INFO,
-      }
-      ipForGlobal.value = {
         ...FAILED_IP_INFO,
       }
     })
