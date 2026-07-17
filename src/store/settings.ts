@@ -5,7 +5,10 @@ import {
   CONNECTION_DISPLAY_STYLE,
   DETAILED_CARD_STYLE,
   EMOJIS,
+  FOLDER_MODE,
   FONTS,
+  GEOIP_ASN_DATABASE_URL,
+  GEOIP_COUNTRY_DATABASE_URL,
   GLOBAL,
   IP_INFO_API,
   IS_APPLE_DEVICE,
@@ -14,8 +17,10 @@ import {
   PROXY_CARD_SIZE,
   PROXY_CHAIN_DIRECTION,
   PROXY_PREVIEW_TYPE,
+  PROXY_SEARCH_MODE,
   PROXY_SORT_TYPE,
   SETTINGS_MENU_KEY,
+  SPEEDTEST_MODE,
   TABLE_SIZE,
   TABLE_WIDTH_MODE,
   TEST_URL,
@@ -43,6 +48,36 @@ const migrateLegacyStorageKey = (legacyKey: string, nextKey: string) => {
 migrateLegacyStorageKey('config/show-seleted-for-now-node', 'config/show-selected-for-now-node')
 migrateLegacyStorageKey('config/use-connecticon-card', 'config/use-connection-card')
 migrateLegacyStorageKey('config/connecticon-table-size', 'config/connection-table-size')
+migrateLegacyStorageKey('config/ipv6-map', 'cache/ipv6-map')
+migrateLegacyStorageKey('config/collapse-group-map', 'cache/collapse-group-map')
+migrateLegacyStorageKey('config/log-search-history', 'cache/log-search-history')
+
+const migrateLegacyConnectionDisplayStyle = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  const nextKey = 'config/connection-display-style'
+  const nextValue = localStorage.getItem(nextKey)
+  const legacyKey = 'config/use-connection-card'
+
+  if (nextValue !== null) {
+    return
+  }
+
+  const legacyValue = localStorage.getItem(legacyKey)
+
+  if (legacyValue === 'true' || legacyValue === 'false') {
+    localStorage.setItem(
+      nextKey,
+      legacyValue === 'true' ? CONNECTION_DISPLAY_STYLE.CARD : CONNECTION_DISPLAY_STYLE.TABLE,
+    )
+  }
+
+  localStorage.removeItem(legacyKey)
+}
+
+migrateLegacyConnectionDisplayStyle()
 
 const migrateLegacyConnectionDisplayStyle = () => {
   if (typeof window === 'undefined') {
@@ -144,8 +179,17 @@ export const displayAllFeatures = useStorage('config/display-all-features', fals
 export const blurIntensity = useStorage('config/blur-intensity', 10)
 export const scrollAnimationEffect = useStorage('config/scroll-animation-effect', true)
 export const IPInfoAPI = useStorage('config/geoip-info-api', IP_INFO_API.IPSB)
+export const geoipCountryDatabaseURL = useStorage(
+  'config/geoip-country-database-url',
+  GEOIP_COUNTRY_DATABASE_URL,
+)
+export const geoipASNDatabaseURL = useStorage(
+  'config/geoip-asn-database-url',
+  GEOIP_ASN_DATABASE_URL,
+)
 export const autoDisconnectIdleUDP = useStorage('config/auto-disconnect-idle-udp', false)
 export const autoDisconnectIdleUDPTime = useStorage('config/auto-disconnect-idle-udp-time', 300)
+export const keyboardShortcuts = useStorage<Record<string, string>>('config/keyboard-shortcuts', {})
 
 // overview
 export const splitOverviewPage = useStorage('config/split-overview-page', false)
@@ -216,18 +260,43 @@ if (missingCards.length > 0) {
 }
 
 // proxies
-export const collapseGroupMap = useStorage<Record<string, boolean>>('config/collapse-group-map', {})
+export const collapseGroupMap = useStorage<Record<string, boolean>>('cache/collapse-group-map', {})
+export const proxyGroupFilterMap = useStorage<Record<string, string>>(
+  'cache/proxy-group-filter-map',
+  {},
+)
 export const displayFinalOutbound = useStorage('config/show-selected-for-now-node', false)
 export const twoColumnProxyGroup = useStorage('config/two-columns', true)
+export const proxyFolderMode = useStorage<FOLDER_MODE>(
+  'config/proxy-folder-mode-setting',
+  FOLDER_MODE.AUTO,
+)
+
 export const speedtestUrl = useStorage<string>('config/speedtest-url', TEST_URL)
 export const independentLatencyTest = useStorage('config/independent-latency-test', false)
 export const speedtestTimeout = useStorage<number>('config/speedtest-timeout', 5000)
+export const speedtestMode = useStorage<SPEEDTEST_MODE>(
+  'config/speedtest-mode',
+  SPEEDTEST_MODE.DASHBOARD,
+)
+export const proxySearchMode = useStorage<PROXY_SEARCH_MODE>(
+  'config/proxy-search-mode',
+  PROXY_SEARCH_MODE.GROUP,
+)
+export const proxyProviderSearchMode = useStorage<PROXY_SEARCH_MODE>(
+  'config/proxy-provider-search-mode',
+  PROXY_SEARCH_MODE.GLOBAL,
+)
 export const proxySortType = useStorage<PROXY_SORT_TYPE>(
   'config/proxy-sort-type',
   PROXY_SORT_TYPE.DEFAULT,
 )
 export const automaticDisconnection = useStorage('config/automatic-disconnection', true)
 export const truncateProxyName = useStorage('config/truncate-proxy-name', true)
+export const disableProxiesPageTextSelect = useStorage(
+  'config/disable-proxies-page-text-select',
+  true,
+)
 export const proxyPreviewType = useStorage('config/proxy-preview-type', PROXY_PREVIEW_TYPE.AUTO)
 export const hideUnavailableProxies = useStorage('config/hide-unavailable-proxies', false)
 export const lowLatency = useStorage('config/low-latency', 400)
@@ -315,7 +384,7 @@ export const disconnectOnRuleDisable = useStorage('config/disconnect-on-rule-dis
 
 // logs
 export const logRetentionLimit = useStorage<number>('config/log-retention-limit', 1000)
-export const logSearchHistory = useStorage<string[]>('config/log-search-history', [])
+export const logSearchHistory = useStorage<string[]>('cache/log-search-history', [])
 
 // settings visibility
 // 使用扁平结构，key 格式为 "大设置项.小设置项" 或 "大设置项"（仅大设置项）
@@ -331,3 +400,6 @@ export const settingsMenuOrder = useStorage<SETTINGS_MENU_KEY[]>(
   'config/settings-menu-order',
   SETTINGS_CATEGORIES.map((category) => category.key),
 )
+
+// settings page two columns mode
+export const settingsPageTwoColumns = useStorage<boolean>('config/settings-page-two-columns', true)

@@ -1,8 +1,14 @@
-import { updateRuleProviderAPI } from '@/api'
+import {
+  fetchRules,
+  ruleProviderList,
+  rules,
+  rulesFilter,
+  rulesTabShow,
+  updateRuleProviderAPI,
+} from '@/assembly/rules'
 import { useCtrlsBar } from '@/composables/useCtrlsBar'
 import { RULE_TAB_TYPE } from '@/constant'
 import { showNotification } from '@/helper/notification'
-import { fetchRules, ruleProviderList, rules, rulesFilter, rulesTabShow } from '@/store/rules'
 import {
   disconnectOnRuleDisable,
   displayLatencyInRule,
@@ -13,6 +19,7 @@ import { computed, defineComponent, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CtrlsBar from '../common/CtrlsBar.vue'
 import DialogWrapper from '../common/DialogWrapper.vue'
+import SegmentedControl from '../common/SegmentedControl.vue'
 import TextInput from '../common/TextInput.vue'
 
 export default defineComponent({
@@ -70,23 +77,15 @@ export default defineComponent({
 
     return () => {
       const tabs = (
-        <div
-          role="tablist"
-          class="tabs-box tabs tabs-xs"
-        >
-          {tabsWithNumbers.value.map(({ type, count }) => {
-            return (
-              <a
-                role="tab"
-                key={type}
-                class={['tab', rulesTabShow.value === type && 'tab-active']}
-                onClick={() => (rulesTabShow.value = type)}
-              >
-                {t(type)} ({count})
-              </a>
-            )
-          })}
-        </div>
+        <SegmentedControl
+          modelValue={rulesTabShow.value}
+          onUpdate:modelValue={(value) => (rulesTabShow.value = value as RULE_TAB_TYPE)}
+          options={tabsWithNumbers.value.map(({ type, count }) => ({
+            value: type,
+            label: t(type),
+            count,
+          }))}
+        />
       )
       const upgradeAllIcon = rulesTabShow.value === RULE_TAB_TYPE.PROVIDER && (
         <button
@@ -101,7 +100,7 @@ export default defineComponent({
         <TextInput
           class={isLargeCtrlsBar.value ? 'w-80' : 'w-32 flex-1'}
           v-model={rulesFilter.value}
-          placeholder={`${t('search')} | ${t('searchMultiple')}`}
+          placeholder={`${t('search')} | Regex`}
           clearable={true}
         />
       )
@@ -118,30 +117,32 @@ export default defineComponent({
             v-model={settingsModel.value}
             title={t('ruleSettings')}
           >
-            <div class="flex flex-col gap-4 p-2 text-sm">
-              <div class="flex items-center gap-2">
-                <span>{t('displaySelectedNode')}</span>
-                <input
-                  class="toggle toggle-sm"
-                  type="checkbox"
-                  v-model={displayNowNodeInRule.value}
-                />
-              </div>
-              <div class="flex items-center gap-2">
-                <span>{t('displayLatencyNumber')}</span>
-                <input
-                  class="toggle toggle-sm"
-                  type="checkbox"
-                  v-model={displayLatencyInRule.value}
-                />
-              </div>
-              <div class="flex items-center gap-2">
-                <span>{t('disconnectOnRuleDisable')}</span>
-                <input
-                  class="toggle toggle-sm"
-                  type="checkbox"
-                  v-model={disconnectOnRuleDisable.value}
-                />
+            <div class="flex flex-col gap-3 text-sm">
+              <div class="settings-grid">
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('displaySelectedNode')}</div>
+                  <input
+                    class="toggle"
+                    type="checkbox"
+                    v-model={displayNowNodeInRule.value}
+                  />
+                </div>
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('displayLatencyNumber')}</div>
+                  <input
+                    class="toggle"
+                    type="checkbox"
+                    v-model={displayLatencyInRule.value}
+                  />
+                </div>
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('disconnectOnRuleDisable')}</div>
+                  <input
+                    class="toggle"
+                    type="checkbox"
+                    v-model={disconnectOnRuleDisable.value}
+                  />
+                </div>
               </div>
             </div>
           </DialogWrapper>

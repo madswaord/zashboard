@@ -5,6 +5,7 @@ import {
   DocumentTextIcon,
   GlobeAltIcon,
   SwatchIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/outline'
 
 export const IS_APPLE_DEVICE = /Mac|iPod|iPhone|iPad/.test(navigator.platform)
@@ -51,8 +52,12 @@ export enum CONNECTIONS_TABLE_ACCESSOR_KEY {
   SniffHost = 'sniffHost',
   Destination = 'destination',
   DestinationType = 'destinationType',
+  GeoIP = 'geoip',
   RemoteAddress = 'remoteAddress',
   InboundUser = 'inboundUser',
+  Protocol = 'protocol',
+  OutboundType = 'outboundType',
+  FromOutbound = 'fromOutbound',
 }
 
 export enum TABLE_WIDTH_MODE {
@@ -73,6 +78,24 @@ export enum PROXY_PREVIEW_TYPE {
   DOTS = 'dots',
   BAR = 'bar',
 }
+
+export enum PROXY_SEARCH_MODE {
+  GLOBAL = 'global',
+  GROUP = 'group',
+}
+
+export enum SPEEDTEST_MODE {
+  CORE = 'core',
+  DASHBOARD = 'dashboard',
+}
+
+export enum FOLDER_MODE {
+  AUTO = 'auto',
+  ON = 'on',
+  OFF = 'off',
+}
+
+export const FOLDER_MODE_AUTO_THRESHOLD = 20
 
 export enum CONNECTION_DISPLAY_STYLE {
   AUTO = 'auto',
@@ -131,6 +154,7 @@ export enum ROUTE_NAME {
   connections = 'connections',
   logs = 'logs',
   rules = 'rules',
+  tools = 'tools',
   settings = 'settings',
   setup = 'setup',
 }
@@ -141,6 +165,7 @@ export const ROUTE_ICON_MAP = {
   [ROUTE_NAME.connections]: ArrowsRightLeftIcon,
   [ROUTE_NAME.rules]: SwatchIcon,
   [ROUTE_NAME.logs]: DocumentTextIcon,
+  [ROUTE_NAME.tools]: WrenchScrewdriverIcon,
   [ROUTE_NAME.settings]: Cog6ToothIcon,
   [ROUTE_NAME.setup]: CubeTransparentIcon,
 }
@@ -205,6 +230,8 @@ export const DETAILED_CARD_STYLE = [
 export const ALL_THEME = [
   'light',
   'dark',
+  'light-neutral',
+  'dark-neutral',
   ...(window.ksu ? ['light-monet', 'dark-monet'] : []),
   'halloween',
   'forest',
@@ -266,6 +293,14 @@ export enum IP_INFO_API {
   IPAPI = 'ipapi.is',
 }
 
+// GeoLite2 databases (country + ASN), loaded once from the CDN and cached in the
+// browser. Served through jsdelivr so the browser gets the CORS headers a
+// cross-origin fetch needs.
+export const GEOIP_COUNTRY_DATABASE_URL =
+  'https://testingcf.jsdelivr.net/gh/P3TERX/GeoLite.mmdb@download/GeoLite2-Country.mmdb'
+export const GEOIP_ASN_DATABASE_URL =
+  'https://testingcf.jsdelivr.net/gh/P3TERX/GeoLite.mmdb@download/GeoLite2-ASN.mmdb'
+
 export enum SETTINGS_MENU_KEY {
   general = 'generalSettings',
   backend = 'backendSettings',
@@ -279,7 +314,6 @@ export enum OVERVIEW_CARD {
   NetworkCard = 'NetworkCard',
   ProviderTrafficOverview = 'ProviderTrafficOverview',
   TopologyCharts = 'TopologyCharts',
-  WorldTrafficMap = 'WorldTrafficMap',
   ConnectionHistory = 'ConnectionHistory',
   RuleHitCountCard = 'RuleHitCountCard',
 }

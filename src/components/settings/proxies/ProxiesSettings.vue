@@ -5,10 +5,27 @@
         {{ $t('latency') }}
       </div>
       <div class="settings-grid">
-        <div
-          v-if="isVisibleSpeedtestUrl"
-          class="setting-item"
-        >
+        <SettingItem :setting-key="k.speedtestMode">
+          <div class="setting-item-label">
+            {{ $t('speedtestMode') }}
+            <QuestionMarkCircleIcon
+              class="h-4 w-4"
+              @mouseenter="speedtestModeTip"
+            />
+          </div>
+          <select
+            class="select select-sm min-w-24"
+            v-model="speedtestMode"
+          >
+            <option :value="SPEEDTEST_MODE.DASHBOARD">
+              {{ $t('speedtestModeDashboard') }}
+            </option>
+            <option :value="SPEEDTEST_MODE.CORE">
+              {{ $t('speedtestModeCore') }}
+            </option>
+          </select>
+        </SettingItem>
+        <SettingItem :setting-key="k.speedtestUrl">
           <div class="setting-item-label">
             {{ $t('speedtestUrl') }}
           </div>
@@ -17,11 +34,8 @@
             v-model="speedtestUrl"
             :clearable="true"
           />
-        </div>
-        <div
-          v-if="isVisibleSpeedtestTimeout"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.speedtestTimeout">
           <div class="setting-item-label">
             {{ $t('speedtestTimeout') }}
           </div>
@@ -31,11 +45,8 @@
             v-model="speedtestTimeout"
           />
           ms
-        </div>
-        <div
-          v-if="isVisibleLowLatency"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.lowLatencyDesc">
           <div class="setting-item-label">
             {{ $t('lowLatencyDesc') }}
           </div>
@@ -45,11 +56,8 @@
             v-model="lowLatency"
           />
           ms
-        </div>
-        <div
-          v-if="isVisibleMediumLatency"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.mediumLatencyDesc">
           <div class="setting-item-label">
             {{ $t('mediumLatencyDesc') }}
           </div>
@@ -59,11 +67,8 @@
             v-model="mediumLatency"
           />
           ms
-        </div>
-        <div
-          v-if="isVisibleIpv6Test"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.ipv6Test">
           <div class="setting-item-label">
             {{ $t('ipv6Test') }}
           </div>
@@ -72,11 +77,8 @@
             type="checkbox"
             v-model="IPv6test"
           />
-        </div>
-        <div
-          v-if="isVisibleIndependentLatencyTest"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.independentLatencyTest">
           <div class="setting-item-label">
             {{ $t('independentLatencyTest') }}
             <QuestionMarkCircleIcon
@@ -89,8 +91,8 @@
             type="checkbox"
             v-model="independentLatencyTest"
           />
-        </div>
-        <GroupTestUrlsSettings v-if="independentLatencyTest && isVisibleGroupTestUrls" />
+        </SettingItem>
+        <GroupTestUrlsSettings />
       </div>
     </template>
     <template v-if="hasVisibleProxyStyleItems">
@@ -98,10 +100,26 @@
         {{ $t('appearance') }}
       </div>
       <div class="settings-grid">
-        <div
-          v-if="isVisibleTwoColumnProxyGroup"
-          class="setting-item"
-        >
+        <SettingItem :setting-key="k.proxyFolderMode">
+          <div class="setting-item-label">
+            {{ $t('proxyFolderMode') }}
+          </div>
+          <select
+            class="select select-sm min-w-24"
+            v-model="proxyFolderMode"
+          >
+            <option :value="FOLDER_MODE.AUTO">
+              {{ $t('folderModeAuto') }}
+            </option>
+            <option :value="FOLDER_MODE.ON">
+              {{ $t('folderModeOn') }}
+            </option>
+            <option :value="FOLDER_MODE.OFF">
+              {{ $t('folderModeOff') }}
+            </option>
+          </select>
+        </SettingItem>
+        <SettingItem :setting-key="k.twoColumnProxyGroup">
           <div class="setting-item-label">
             {{ $t('twoColumnProxyGroup') }}
           </div>
@@ -110,11 +128,8 @@
             type="checkbox"
             v-model="twoColumnProxyGroup"
           />
-        </div>
-        <div
-          v-if="isVisibleTruncateProxyName"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.truncateProxyName">
           <div class="setting-item-label">
             {{ $t('truncateProxyName') }}
           </div>
@@ -123,11 +138,8 @@
             type="checkbox"
             v-model="truncateProxyName"
           />
-        </div>
-        <div
-          v-if="isVisibleDisplayGlobalByMode"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.displayGlobalByMode">
           <div class="setting-item-label">
             {{ $t('displayGlobalByMode') }}
           </div>
@@ -136,16 +148,16 @@
             type="checkbox"
             v-model="displayGlobalByMode"
           />
-        </div>
-        <div
-          v-if="displayGlobalByMode && isSingBox && isVisibleCustomGlobalNode"
-          class="setting-item"
+        </SettingItem>
+        <SettingItem
+          :setting-key="k.customGlobalNode"
+          :when="displayGlobalByMode && isSingBoxCore"
         >
           <div class="setting-item-label">
             {{ $t('customGlobalNode') }}
           </div>
           <select
-            class="select select-sm min-w-24"
+            class="select select-sm w-32"
             v-model="customGlobalNode"
           >
             <option
@@ -156,11 +168,8 @@
               {{ opt }}
             </option>
           </select>
-        </div>
-        <div
-          v-if="isVisibleProxyPreviewType"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.proxyPreviewType">
           <div class="setting-item-label">
             {{ $t('proxyPreviewType') }}
           </div>
@@ -176,11 +185,8 @@
               {{ $t(opt) }}
             </option>
           </select>
-        </div>
-        <div
-          v-if="isVisibleProxyCardSize"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.proxyCardSize">
           <div class="setting-item-label">
             {{ $t('proxyCardSize') }}
           </div>
@@ -197,11 +203,8 @@
               {{ $t(opt) }}
             </option>
           </select>
-        </div>
-        <div
-          v-if="isVisibleProxyGroupIconSize"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.proxyGroupIconSize">
           <div class="setting-item-label">
             {{ $t('proxyGroupIconSize') }}
           </div>
@@ -210,11 +213,8 @@
             class="input input-sm w-24"
             v-model="proxyGroupIconSize"
           />
-        </div>
-        <div
-          v-if="isVisibleProxyGroupIconMargin"
-          class="setting-item"
-        >
+        </SettingItem>
+        <SettingItem :setting-key="k.proxyGroupIconMargin">
           <div class="setting-item-label">
             {{ $t('proxyGroupIconMargin') }}
           </div>
@@ -223,21 +223,22 @@
             class="input input-sm w-24"
             v-model="proxyGroupIconMargin"
           />
-        </div>
-        <IconSettings v-if="isVisibleIconSettings" />
+        </SettingItem>
+        <IconSettings />
       </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { isSingBox } from '@/api'
+import { isSingBoxCore } from '@/assembly/version'
+import SettingItem from '@/components/settings/SettingItem.vue'
 import { useIsSettingVisible } from '@/composables/settings'
 import { PROXIES_ITEM_KEYS } from '@/config/settingsItems'
-import { PROXY_CARD_SIZE, PROXY_PREVIEW_TYPE } from '@/constant'
+import { FOLDER_MODE, PROXY_CARD_SIZE, PROXY_PREVIEW_TYPE, SPEEDTEST_MODE } from '@/constant'
 import { useTooltip } from '@/helper/tooltip'
 import { getMinCardWidth } from '@/helper/utils'
-import { proxyMap } from '@/store/proxies'
+import { proxyMap } from '@/assembly/proxies'
 import {
   customGlobalNode,
   displayGlobalByMode,
@@ -250,9 +251,11 @@ import {
   proxyGroupIconMargin,
   proxyGroupIconSize,
   proxyPreviewType,
+  speedtestMode,
   speedtestTimeout,
   speedtestUrl,
   truncateProxyName,
+  proxyFolderMode,
   twoColumnProxyGroup,
 } from '@/store/settings'
 import { QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
@@ -265,12 +268,14 @@ import IconSettings from './IconSettings.vue'
 const k = PROXIES_ITEM_KEYS
 const isVisibleSpeedtestUrl = useIsSettingVisible(k.speedtestUrl)
 const isVisibleSpeedtestTimeout = useIsSettingVisible(k.speedtestTimeout)
+const isVisibleSpeedtestMode = useIsSettingVisible(k.speedtestMode)
 const isVisibleLowLatency = useIsSettingVisible(k.lowLatencyDesc)
 const isVisibleMediumLatency = useIsSettingVisible(k.mediumLatencyDesc)
 const isVisibleIpv6Test = useIsSettingVisible(k.ipv6Test)
 const isVisibleIndependentLatencyTest = useIsSettingVisible(k.independentLatencyTest)
 const isVisibleGroupTestUrls = useIsSettingVisible(k.groupTestUrls)
 const isVisibleTwoColumnProxyGroup = useIsSettingVisible(k.twoColumnProxyGroup)
+const isVisibleProxyFolderMode = useIsSettingVisible(k.proxyFolderMode)
 const isVisibleTruncateProxyName = useIsSettingVisible(k.truncateProxyName)
 const isVisibleDisplayGlobalByMode = useIsSettingVisible(k.displayGlobalByMode)
 const isVisibleCustomGlobalNode = useIsSettingVisible(k.customGlobalNode)
@@ -282,6 +287,9 @@ const isVisibleIconSettings = useIsSettingVisible(k.icon)
 
 const { showTip } = useTooltip()
 const { t } = useI18n()
+const speedtestModeTip = (e: Event) => {
+  return showTip(e, t('speedtestModeTip'))
+}
 const independentLatencyTestTip = (e: Event) => {
   return showTip(e, t('independentLatencyTestTip'))
 }
@@ -294,6 +302,7 @@ const hasVisibleLatencyItems = computed(() => {
   return (
     isVisibleSpeedtestUrl.value ||
     isVisibleSpeedtestTimeout.value ||
+    isVisibleSpeedtestMode.value ||
     isVisibleLowLatency.value ||
     isVisibleMediumLatency.value ||
     isVisibleIpv6Test.value ||
@@ -305,13 +314,15 @@ const hasVisibleLatencyItems = computed(() => {
 const hasVisibleProxyStyleItems = computed(() => {
   return (
     isVisibleTwoColumnProxyGroup.value ||
+    isVisibleProxyFolderMode.value ||
     isVisibleTruncateProxyName.value ||
     isVisibleDisplayGlobalByMode.value ||
-    (displayGlobalByMode.value && isSingBox.value && isVisibleCustomGlobalNode.value) ||
+    (displayGlobalByMode.value && isSingBoxCore.value && isVisibleCustomGlobalNode.value) ||
     isVisibleProxyPreviewType.value ||
     isVisibleProxyCardSize.value ||
     isVisibleProxyGroupIconSize.value ||
-    isVisibleProxyGroupIconMargin.value
+    isVisibleProxyGroupIconMargin.value ||
+    isVisibleIconSettings.value
   )
 })
 </script>

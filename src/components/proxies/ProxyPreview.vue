@@ -27,25 +27,25 @@
       <div
         :class="getBgColor(lowLatency - 1)"
         :style="{
-          width: `${(goodsCounts * 100) / nodes.length}%`, // cant use tw class, otherwise dynamic classname won't be generated
+          width: getPreviewWidth(goodsCounts), // cant use tw class, otherwise dynamic classname won't be generated
         }"
       />
       <div
         :class="getBgColor(mediumLatency - 1)"
         :style="{
-          width: `${(mediumCounts * 100) / nodes.length}%`,
+          width: getPreviewWidth(mediumCounts),
         }"
       />
       <div
         :class="getBgColor(mediumLatency + 1)"
         :style="{
-          width: `${(badCounts * 100) / nodes.length}%`,
+          width: getPreviewWidth(badCounts),
         }"
       />
       <div
         :class="getBgColor(NOT_CONNECTED)"
         :style="{
-          width: `${(notConnectedCounts * 100) / nodes.length}%`,
+          width: getPreviewWidth(notConnectedCounts),
         }"
       />
     </div>
@@ -56,7 +56,7 @@
 import { NOT_CONNECTED, PROXY_PREVIEW_TYPE } from '@/constant'
 import { getColorForLatency } from '@/helper'
 import { useTooltip } from '@/helper/tooltip'
-import { getLatencyByName } from '@/store/proxies'
+import { getLatencyByName } from '@/assembly/proxies'
 import { lowLatency, mediumLatency, proxyPreviewType } from '@/store/settings'
 import { useElementSize } from '@vueuse/core'
 import { computed, ref } from 'vue'
@@ -92,6 +92,14 @@ const makeTippy = (e: Event, node: { name: string; latency: number }) => {
 
   tag.classList.add('flex', 'items-center', 'gap-2')
   showTip(e, tag)
+}
+
+const getPreviewWidth = (count: number) => {
+  if (!props.nodes.length) {
+    return '0%'
+  }
+
+  return `${(count * 100) / props.nodes.length}%`
 }
 
 const showDots = computed(() => {

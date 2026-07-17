@@ -28,76 +28,15 @@
       </div>
     </div>
 
-    <div
-      v-if="isVisibleActions"
-      class="settings-grid my-3 gap-2 p-3 md:grid-cols-2!"
-    >
-      <button
-        :class="twMerge('btn btn-neutral btn-sm', isUIUpgrading ? 'animate-pulse' : '')"
-        @click="handlerClickUpgradeUI"
-      >
-        {{ $t('upgradeDashboard') }}
-      </button>
-      <button
-        class="btn btn-sm"
-        @click="handlerClickResetSettings"
-      >
-        {{ $t('resetSettings') }}
-      </button>
-      <button
-        class="btn btn-sm"
-        @click="exportSettings"
-      >
-        {{ $t('exportSettings') }}
-      </button>
-      <ImportSettings />
-    </div>
-
     <StyleSettings />
     <GeneralSettings />
   </div>
 </template>
 
 <script setup lang="ts">
-import { upgradeUIAPI, zashboardVersion } from '@/api'
-import { useIsSettingVisible, useSettings } from '@/composables/settings'
-import { GENERAL_ITEM_KEYS } from '@/config/settingsItems'
-import { handlerUpgradeSuccess } from '@/helper'
-import { exportSettings, resetSettings } from '@/helper/utils'
-import { twMerge } from 'tailwind-merge'
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import ImportSettings from '../../common/ImportSettings.vue'
+import { isUIUpdateAvailable, zashboardVersion } from '@/assembly/version'
 import GeneralSettings from './GeneralSettings.vue'
 import StyleSettings from './StyleSettings.vue'
 
-const k = GENERAL_ITEM_KEYS
-const isVisibleActions = useIsSettingVisible(k.actions)
-
 const commitId = __COMMIT_ID__
-
-const { isUIUpdateAvailable } = useSettings()
-const { t } = useI18n()
-
-const isUIUpgrading = ref(false)
-
-const handlerClickResetSettings = () => {
-  if (!window.confirm(t('resetSettingsConfirm'))) return
-  resetSettings()
-}
-
-const handlerClickUpgradeUI = async () => {
-  if (isUIUpgrading.value) return
-  isUIUpgrading.value = true
-  try {
-    await upgradeUIAPI()
-    isUIUpgrading.value = false
-    handlerUpgradeSuccess()
-    setTimeout(() => {
-      window.location.reload()
-    }, 1000)
-  } catch {
-    isUIUpgrading.value = false
-  }
-}
 </script>

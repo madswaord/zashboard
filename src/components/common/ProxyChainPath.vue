@@ -7,12 +7,18 @@
     <div class="proxy-chain-path">
       <template v-if="collapsed">
         <span class="proxy-chain-node">
-          <ProxyName :name="proxy" />
+          <ProxyName
+            :name="proxy"
+            :filter="filter"
+          />
         </span>
         <template v-if="proxyNode?.now && showNowNode">
           <ChevronRightIcon class="proxy-chain-separator" />
           <span class="proxy-chain-node pointer-events-none">
-            <ProxyName :name="getNowProxyNodeName(proxy)" />
+            <ProxyName
+              :name="getNowProxyNodeName(proxy)"
+              :filter="filter"
+            />
           </span>
         </template>
       </template>
@@ -32,7 +38,10 @@
             }"
             @click.stop="handleSelect(chain)"
           >
-            <ProxyName :name="chain" />
+            <ProxyName
+              :name="chain"
+              :filter="filter"
+            />
           </span>
         </template>
         <template
@@ -47,7 +56,10 @@
             class="proxy-chain-node proxy-chain-node-terminal"
             @click.stop
           >
-            <ProxyName :name="getNowProxyNodeName(proxy)" />
+            <ProxyName
+              :name="getNowProxyNodeName(proxy)"
+              :filter="filter"
+            />
           </span>
         </template>
       </template>
@@ -71,7 +83,7 @@ import {
   getNowProxyNodeName,
   getProxyGroupChains,
   proxyMap,
-} from '@/store/proxies'
+} from '@/assembly/proxies'
 import { ChevronRightIcon } from '@heroicons/vue/24/outline'
 import { computed, ref } from 'vue'
 import ProxyName from '../proxies/ProxyName.vue'
@@ -84,6 +96,7 @@ const props = withDefaults(
     showNowNode?: boolean
     showLatency?: boolean
     interactive?: boolean
+    filter?: string
   }>(),
   {
     selected: '',
@@ -91,6 +104,7 @@ const props = withDefaults(
     showNowNode: false,
     showLatency: false,
     interactive: true,
+    filter: '',
   },
 )
 

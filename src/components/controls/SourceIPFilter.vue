@@ -16,13 +16,14 @@
 
 <script setup lang="ts">
 import { getIPLabelFromMap } from '@/helper/sourceip'
+import { getConnectionSourceIP } from '@/helper'
 import { connections, sourceIPFilter } from '@/store/connections'
 import * as ipaddr from 'ipaddr.js'
 import { isEqual, uniq } from 'lodash'
 import { computed, ref, watch } from 'vue'
 
 const sourceIPs = computed(() => {
-  return uniq(connections.value.map((conn) => conn.metadata.sourceIP)).sort((a, b) => {
+  return uniq(connections.value.map(getConnectionSourceIP)).sort((a, b) => {
     if (!ipaddr.isValid(a)) return -1
     if (!ipaddr.isValid(b)) return 1
 
@@ -53,28 +54,28 @@ watch(
   sourceIPs,
   (value, oldValue) => {
     if (isEqual(value, oldValue)) return
-    sourceIPOpts.value = []
+    const options: { label: string; value: string[] }[] = []
 
-    sourceIPs.value.forEach((ip) => {
+    value.forEach((ip) => {
       const label = getIPLabelFromMap(ip)
-      const index = sourceIPOpts.value.findIndex((opt) => opt.label === label)
+      const index = options.findIndex((opt) => opt.label === label)
 
       if (index === -1) {
-        sourceIPOpts.value.push({
+        options.push({
           label,
           value: [ip],
         })
       } else {
-        sourceIPOpts.value[index].value.push(ip)
+        options[index].value.push(ip)
       }
     })
 
     if (sourceIPFilter.value !== null) {
       const currentLabel = getIPLabelFromMap(sourceIPFilter.value[0])
-      const current = sourceIPOpts.value.find((opt) => opt.label === currentLabel)
+      const current = options.find((opt) => opt.label === currentLabel)
 
       if (!current) {
-        sourceIPOpts.value.unshift({
+        options.unshift({
           label: currentLabel,
           value: sourceIPFilter.value,
         })
@@ -82,6 +83,8 @@ watch(
         sourceIPFilter.value = current.value
       }
     }
+
+    sourceIPOpts.value = options
   },
   {
     immediate: true,

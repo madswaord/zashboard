@@ -1,54 +1,70 @@
 <template>
   <div
-    class="max-md:scrollbar-hidden h-full"
-    :class="disableProxiesPageScroll ? 'overflow-y-hidden' : 'overflow-y-scroll'"
-    :style="padding"
-    :id="PROXIES_PAGE"
-    ref="proxiesRef"
-    @scroll.passive="handleScroll"
+    class="relative flex size-full overflow-hidden"
+    :class="[disableProxiesPageTextSelect ? 'select-none' : '']"
   >
-    <ProxiesCtrl />
-    <template v-if="displayTwoColumns">
-      <div class="grid grid-cols-2 gap-3 p-3 md:pr-1">
-        <div
-          v-for="idx in [0, 1]"
-          :key="idx"
-          class="flex flex-1 flex-col gap-3"
-        >
-          <component
-            v-for="name in filterContent(renderGroups, idx)"
-            :is="renderComponent"
-            :key="name"
-            :name="name"
-          />
-        </div>
-      </div>
-    </template>
+    <FolderManagerPanel v-if="foldersUiVisible && folderManagerOpen" />
     <div
-      class="grid grid-cols-1 gap-3 p-3 md:pr-1"
-      v-else
+      class="max-md:scrollbar-hidden relative h-full min-w-0 flex-1"
+      :class="disableProxiesPageScroll ? 'overflow-y-hidden' : 'overflow-y-scroll'"
+      :style="padding"
+      ref="proxiesRef"
+      @scroll.passive="handleScroll"
     >
-      <component
-        v-for="name in renderGroups"
-        :is="renderComponent"
-        :key="name"
-        :name="name"
-      />
+      <ProxiesCtrl />
+      <FolderTopBar v-if="foldersUiVisible" />
+      <template v-if="displayTwoColumns">
+        <div class="grid grid-cols-2 gap-3 p-3 md:pr-2">
+          <div
+            v-for="idx in [0, 1]"
+            :key="idx"
+            class="flex flex-1 flex-col gap-3"
+          >
+            <component
+              v-for="name in filterContent(renderPageItems, idx)"
+              :is="renderComponent"
+              :key="name"
+              :name="name"
+            />
+          </div>
+        </div>
+      </template>
+      <div
+        class="grid grid-cols-1 gap-3 p-3 md:pr-2"
+        v-else
+      >
+        <component
+          v-for="name in renderPageItems"
+          :is="renderComponent"
+          :key="name"
+          :name="name"
+        />
+      </div>
     </div>
+    <ProxyGroupChainModal />
   </div>
 </template>
 
 <script setup lang="ts">
 import ProxiesCtrl from '@/components/controls/ProxiesCtrl'
+import FolderManagerPanel from '@/components/proxies/folders/FolderManagerPanel.vue'
+import FolderTopBar from '@/components/proxies/folders/FolderTopBar.vue'
 import ProxyGroup from '@/components/proxies/ProxyGroup.vue'
 import ProxyGroupForMobile from '@/components/proxies/ProxyGroupForMobile.vue'
 import ProxyProvider from '@/components/proxies/ProxyProvider.vue'
+import ProxyGroupChainModal from '@/components/proxies/ProxyGroupChainModal.vue'
 import { usePaddingForViews } from '@/composables/paddingViews'
-import { disableProxiesPageScroll, isProxiesPageMounted, renderGroups } from '@/composables/proxies'
+import {
+  disableProxiesPageScroll,
+  isProxiesPageMounted,
+  renderProxiesPageItems,
+} from '@/composables/proxies'
 import { PROXY_TAB_TYPE } from '@/constant'
-import { isMiddleScreen, PROXIES_PAGE } from '@/helper/utils'
-import { fetchProxies, proxiesTabShow } from '@/store/proxies'
-import { twoColumnProxyGroup } from '@/store/settings'
+import { isMiddleScreen } from '@/helper/utils'
+import { fetchProxies } from '@/assembly/proxies'
+import { proxiesTabShow } from '@/assembly/proxies'
+import { disableProxiesPageTextSelect, twoColumnProxyGroup } from '@/store/settings'
+import { folderManagerOpen, isProxyFolderModeActive } from '@/store/proxyFolders'
 import { useSessionStorage } from '@vueuse/core'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 
@@ -56,6 +72,7 @@ const { padding } = usePaddingForViews({
   offsetTop: 0,
   offsetBottom: 0,
 })
+const renderPageItems = renderProxiesPageItems
 const proxiesRef = ref()
 const scrollStatus = useSessionStorage('cache/proxies-scroll-status', {
   [PROXY_TAB_TYPE.PROVIDER]: 0,
@@ -63,15 +80,20 @@ const scrollStatus = useSessionStorage('cache/proxies-scroll-status', {
 })
 
 const handleScroll = () => {
+  if (!proxiesRef.value) return
   scrollStatus.value[proxiesTabShow.value] = proxiesRef.value.scrollTop
 }
 
 const waitTickUntilReady = (startTime = performance.now()) => {
+  const proxiesEl = proxiesRef.value
+  const isTimedOut = performance.now() - startTime > 300
+
   if (
-    performance.now() - startTime > 300 ||
-    proxiesRef.value.scrollHeight > scrollStatus.value[proxiesTabShow.value]
+    isTimedOut ||
+    (proxiesEl && proxiesEl.scrollHeight > scrollStatus.value[proxiesTabShow.value])
   ) {
-    proxiesRef.value.scrollTo({
+    if (!proxiesEl) return
+    proxiesEl.scrollTo({
       top: scrollStatus.value[proxiesTabShow.value],
       behavior: 'smooth',
     })
@@ -112,11 +134,15 @@ const renderComponent = computed(() => {
   return ProxyGroup
 })
 
+const foldersUiVisible = computed(
+  () => isProxyFolderModeActive.value && proxiesTabShow.value === PROXY_TAB_TYPE.PROXIES,
+)
+
 const displayTwoColumns = computed(() => {
   if (proxiesTabShow.value === PROXY_TAB_TYPE.PROVIDER && isMiddleScreen.value) {
     return false
   }
-  return twoColumnProxyGroup.value && renderGroups.value.length > 1
+  return twoColumnProxyGroup.value && renderPageItems.value.length > 1
 })
 
 const filterContent: <T>(all: T[], target: number) => T[] = (all, target) => {

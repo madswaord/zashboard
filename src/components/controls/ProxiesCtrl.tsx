@@ -1,10 +1,5 @@
-import { disconnectByIdAPI, isSingBox, updateProxyProviderAPI } from '@/api'
-import { renderGroups } from '@/composables/proxies'
-import { useCtrlsBar } from '@/composables/useCtrlsBar'
-import { PROXY_SORT_TYPE, PROXY_TAB_TYPE, ROUTE_NAME, SETTINGS_MENU_KEY } from '@/constant'
-import { getMinCardWidth } from '@/helper/utils'
-import { configs, updateConfigs } from '@/store/config'
-import { activeConnections } from '@/store/connections'
+import { configs, updateConfigs } from '@/assembly/config'
+import { disconnectByIdAPI } from '@/assembly/connections'
 import {
   allProxiesLatencyTest,
   fetchProxies,
@@ -13,10 +8,20 @@ import {
   proxiesTabShow,
   proxyGroupList,
   proxyProviederList,
-} from '@/store/proxies'
+  updateProxyProviderAPI,
+} from '@/assembly/proxies'
+import { isSingBoxCore } from '@/assembly/version'
+import { renderProxiesPageItems } from '@/composables/proxies'
+import { isProxyNodeSearchMode, toggleProxySearchMode } from '@/composables/proxySearch'
+import { useCtrlsBar } from '@/composables/useCtrlsBar'
+import { PROXY_SORT_TYPE, PROXY_TAB_TYPE, ROUTE_NAME, SETTINGS_MENU_KEY } from '@/constant'
+import { getMinCardWidth } from '@/helper/utils'
+import { activeConnections } from '@/store/connections'
+import { isProxyFolderModeActive } from '@/store/proxyFolders'
 import {
   automaticDisconnection,
   collapseGroupMap,
+  disableProxiesPageTextSelect,
   displayFinalOutbound,
   groupProxiesByProvider,
   hideUnavailableProxies,
@@ -32,6 +37,8 @@ import {
   BoltIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  GlobeAltIcon,
+  RectangleGroupIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/outline'
 import { every } from 'lodash'
@@ -40,6 +47,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CtrlsBar from '../common/CtrlsBar.vue'
 import DialogWrapper from '../common/DialogWrapper.vue'
+import SegmentedControl from '../common/SegmentedControl.vue'
 import TextInput from '../common/TextInput.vue'
 
 export default defineComponent({
@@ -70,6 +78,10 @@ export default defineComponent({
       return proxyProviederList.value.length > 0
     })
 
+    const foldersUiVisible = computed(
+      () => isProxyFolderModeActive.value && proxiesTabShow.value === PROXY_TAB_TYPE.PROXIES,
+    )
+
     const defaultModes = ['direct', 'rule', 'global']
     const modeList = computed(() => {
       return configs.value?.['mode-list'] || configs.value?.['modes'] || defaultModes
@@ -81,7 +93,7 @@ export default defineComponent({
     const handlerModeChange = (e: Event) => {
       const mode = (e.target as HTMLSelectElement).value
       updateConfigs({ mode })
-      if (isSingBox.value && automaticDisconnection.value) {
+      if (isSingBoxCore.value && automaticDisconnection.value) {
         activeConnections.value.forEach((connection) => {
           if (connection.rule.includes('clash_mode')) {
             disconnectByIdAPI(connection.id)
@@ -102,12 +114,12 @@ export default defineComponent({
     }
 
     const hasNotCollapsed = computed(() => {
-      return renderGroups.value.some((name) => collapseGroupMap.value[name])
+      return renderProxiesPageItems.value.some((name) => collapseGroupMap.value[name])
     })
 
     const handlerClickToggleCollapse = () => {
       collapseGroupMap.value = Object.fromEntries(
-        renderGroups.value.map((name) => [name, !hasNotCollapsed.value]),
+        renderProxiesPageItems.value.map((name) => [name, !hasNotCollapsed.value]),
       )
     }
 
@@ -128,23 +140,15 @@ export default defineComponent({
     })
     return () => {
       const tabs = (
-        <div
-          role="tablist"
-          class="tabs-box tabs tabs-xs"
-        >
-          {tabsWithNumbers.value.map(({ type, count }) => {
-            return (
-              <a
-                role="tab"
-                key={type}
-                class={['tab', proxiesTabShow.value === type && 'tab-active']}
-                onClick={() => (proxiesTabShow.value = type)}
-              >
-                {t(type)} ({count})
-              </a>
-            )
-          })}
-        </div>
+        <SegmentedControl
+          modelValue={proxiesTabShow.value}
+          onUpdate:modelValue={(value) => (proxiesTabShow.value = value as PROXY_TAB_TYPE)}
+          options={tabsWithNumbers.value.map(({ type, count }) => ({
+            value: type,
+            label: t(type),
+            count,
+          }))}
+        />
       )
       const upgradeAllIcon = proxiesTabShow.value === PROXY_TAB_TYPE.PROVIDER && (
         <button
@@ -221,13 +225,31 @@ export default defineComponent({
         </button>
       )
 
+      const searchPlaceholder = isProxyNodeSearchMode.value
+        ? `${t('searchProxyNode')} | Regex`
+        : `${t('searchProxyGroup')} | Regex`
       const searchInput = (
-        <TextInput
-          class={['w-32 flex-1', isLargeCtrlsBar.value && 'max-w-80']}
-          v-model={proxiesFilter.value}
-          placeholder={`${t('search')} | ${t('searchMultiple')}`}
-          clearable={true}
-        />
+        <div class={['relative w-32 flex-1', isLargeCtrlsBar.value && 'max-w-80']}>
+          <button
+            class="btn btn-circle btn-ghost btn-xs absolute top-1/2 left-1 z-20 h-6 min-h-6 w-6 -translate-y-1/2 p-0"
+            title={
+              isProxyNodeSearchMode.value ? t('proxySearchModeGlobal') : t('proxySearchModeGroup')
+            }
+            onClick={toggleProxySearchMode}
+          >
+            {isProxyNodeSearchMode.value ? (
+              <GlobeAltIcon class="h-3.5 w-3.5" />
+            ) : (
+              <RectangleGroupIcon class="h-3.5 w-3.5" />
+            )}
+          </button>
+          <TextInput
+            v-model={proxiesFilter.value}
+            placeholder={searchPlaceholder}
+            clearable={true}
+            inputClass="pl-7"
+          />
+        </div>
       )
 
       const settingsModal = (
@@ -242,75 +264,85 @@ export default defineComponent({
             v-model={settingsModel.value}
             title={t('proxySettings')}
           >
-            <div class="flex flex-col gap-4 p-2 text-sm">
-              <div class="flex items-center gap-2">
-                {t('sortBy')}
-                {sort}
-              </div>
-              {hasSmartGroup.value && (
-                <div class="flex items-center gap-2">
-                  {t('useSmartGroupSort')}
+            <div class="flex flex-col gap-3 text-sm">
+              <div class="settings-grid">
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('sortBy')}</div>
+                  {sort}
+                </div>
+                {hasSmartGroup.value && (
+                  <div class="setting-item">
+                    <div class="setting-item-label">{t('useSmartGroupSort')}</div>
+                    <input
+                      class="toggle"
+                      type="checkbox"
+                      v-model={useSmartGroupSort.value}
+                    />
+                  </div>
+                )}
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('groupProxiesByProvider')}</div>
+                  <input
+                    type="checkbox"
+                    class="toggle"
+                    v-model={groupProxiesByProvider.value}
+                  />
+                </div>
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('unavailableProxy')}</div>
+                  <input
+                    type="checkbox"
+                    class="toggle"
+                    v-model={hideUnavailableProxies.value}
+                  />
+                </div>
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('manageHiddenGroup')}</div>
                   <input
                     class="toggle"
                     type="checkbox"
-                    v-model={useSmartGroupSort.value}
+                    v-model={manageHiddenGroup.value}
                   />
                 </div>
-              )}
-              <div class="flex items-center gap-2">
-                {t('groupProxiesByProvider')}
-                <input
-                  type="checkbox"
-                  class="toggle"
-                  v-model={groupProxiesByProvider.value}
-                />
-              </div>
-              <div class="flex items-center gap-2">
-                {t('unavailableProxy')}
-                <input
-                  type="checkbox"
-                  class="toggle"
-                  v-model={hideUnavailableProxies.value}
-                />
-              </div>
-              <div class="flex items-center gap-2">
-                {t('manageHiddenGroup')}
-                <input
-                  class="toggle"
-                  type="checkbox"
-                  v-model={manageHiddenGroup.value}
-                />
-              </div>
-              <div class="flex items-center gap-2">
-                {t('automaticDisconnection')}
-                <input
-                  class="toggle"
-                  type="checkbox"
-                  v-model={automaticDisconnection.value}
-                />
-              </div>
-              <div class="flex items-center gap-2">
-                {t('displayFinalOutbound')}
-                <input
-                  class="toggle"
-                  type="checkbox"
-                  v-model={displayFinalOutbound.value}
-                />
-              </div>
-              <div class="flex items-center gap-2">
-                {t('minProxyCardWidth')}
-                <div class="join">
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('automaticDisconnection')}</div>
                   <input
-                    class="input input-sm join-item w-20"
-                    type="number"
-                    v-model={minProxyCardWidth.value}
+                    class="toggle"
+                    type="checkbox"
+                    v-model={automaticDisconnection.value}
                   />
-                  <button
-                    class="btn join-item btn-sm"
-                    onClick={handlerResetProxyCardWidth}
-                  >
-                    {t('reset')}
-                  </button>
+                </div>
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('displayFinalOutbound')}</div>
+                  <input
+                    class="toggle"
+                    type="checkbox"
+                    v-model={displayFinalOutbound.value}
+                  />
+                </div>
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('disableProxiesPageTextSelect')}</div>
+                  <input
+                    class="toggle"
+                    type="checkbox"
+                    v-model={disableProxiesPageTextSelect.value}
+                  />
+                </div>
+                <div class="setting-item">
+                  <div class="setting-item-label">{t('minProxyCardWidth')}</div>
+                  <div class="join">
+                    <input
+                      class="input input-sm join-item w-20"
+                      type="number"
+                      v-model={minProxyCardWidth.value}
+                    />
+                    <button
+                      class="btn join-item btn-sm"
+                      onClick={handlerResetProxyCardWidth}
+                    >
+                      {t('reset')}
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="divider m-0"></div>
@@ -359,7 +391,7 @@ export default defineComponent({
         </div>
       )
 
-      return <CtrlsBar>{content}</CtrlsBar>
+      return <CtrlsBar solid={foldersUiVisible.value}>{content}</CtrlsBar>
     }
   },
 })

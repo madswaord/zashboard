@@ -1,93 +1,141 @@
+import { getLatencyByName, proxyMap, proxyProviederList } from '@/assembly/proxies'
 import { NOT_CONNECTED, PROXY_SORT_TYPE } from '@/constant'
 import { isProxyGroup } from '@/helper'
-import { getLatencyByName, proxiesFilter } from '@/store/proxies'
-import { hideUnavailableProxies, proxySortType, useSmartGroupSort } from '@/store/settings'
+import {
+  hideUnavailableProxies,
+  proxyGroupFilterMap,
+  proxySortType,
+  useSmartGroupSort,
+} from '@/store/settings'
 import { smartOrderMap } from '@/store/smart'
 import { computed, type ComputedRef } from 'vue'
+import { isProxyNodeSearchMode, matchProxySearchKeyword, proxySearchKeyword } from './proxySearch'
 
-export function useRenderProxies(proxies: ComputedRef<string[]>, proxyGroup?: string) {
-  const renderProxies = computed(() => {
-    return getRenderProxies(proxies.value, proxyGroup)
-  })
-  const availableProxies = computed(() => {
-    return renderProxies.value.filter(
-      (proxy) => getLatencyByName(proxy, proxyGroup) !== NOT_CONNECTED,
-    ).length
-  })
+type LatencyMap = Map<string, number>
 
-  const proxiesCount = computed(() => {
-    const all = proxies.value.length
-
-    return `${availableProxies.value}/${all}`
-  })
-
-  return {
-    renderProxies,
-    proxiesCount,
-  }
+export type ProxiesProviderSection = {
+  providerName: string
+  proxies: string[]
 }
 
-const getRenderProxies = (proxies: string[], groupName?: string) => {
-  const latencyMap = new Map<string, number>()
+export const groupProxiesByProviderName = (proxies: string[]): ProxiesProviderSection[] => {
+  const proxiesOfProvider: Record<string, string[]> = {}
+  const providerKeys: string[] = []
 
-  proxies = [...proxies]
-  proxies.forEach((name) => {
-    latencyMap.set(name, getLatencyByName(name, groupName))
+  for (const proxy of proxies) {
+    const proxyNode = proxyMap.value[proxy]
+    const providerName =
+      proxyNode['provider-name'] ||
+      (proxyProviederList.value.find((group) => group.proxies.find((node) => node.name === proxy))
+        ?.name ??
+        '')
+
+    if (proxiesOfProvider[providerName]) {
+      proxiesOfProvider[providerName].push(proxy)
+    } else {
+      if (providerName === '') {
+        providerKeys.unshift('')
+      } else {
+        providerKeys.push(providerName)
+      }
+
+      proxiesOfProvider[providerName] = [proxy]
+    }
+  }
+
+  return providerKeys.map((providerName) => ({
+    providerName,
+    proxies: proxiesOfProvider[providerName],
+  }))
+}
+
+export function useRenderProxyList(proxies: ComputedRef<string[]>, groupName?: string) {
+  const renderProxies = computed(() => getRenderProxies(proxies.value, groupName))
+
+  const proxiesCount = computed(() => {
+    const available = renderProxies.value.filter(
+      (proxy) => getLatencyByName(proxy, groupName) !== NOT_CONNECTED,
+    ).length
+    return `${available}/${proxies.value.length}`
   })
 
+  return { renderProxies, proxiesCount }
+}
+
+const getRenderProxies = (proxies: string[], groupName: string | undefined) => {
+  const latencyMap: LatencyMap = new Map(
+    proxies.map((name) => [name, getLatencyByName(name, groupName)]),
+  )
+  const filtered = filterProxies(proxies, groupName, latencyMap)
+  return sortProxies(filtered, groupName, latencyMap)
+}
+
+const filterProxies = (
+  proxies: string[],
+  groupName: string | undefined,
+  latencyMap: LatencyMap,
+) => {
+  let result = proxies
+
   if (hideUnavailableProxies.value) {
-    proxies = proxies.filter((name) => {
-      return isProxyGroup(name) || latencyMap.get(name)! > NOT_CONNECTED
-    })
+    result = result.filter((name) => isProxyGroup(name) || latencyMap.get(name)! > NOT_CONNECTED)
   }
 
-  if (proxiesFilter.value) {
-    const filters = proxiesFilter.value.split(' ').map((f) => f.toLowerCase().trim())
-
-    proxies = proxies.filter((name) => {
-      name = name.toLowerCase()
-      return filters.every((f) => name.includes(f))
-    })
+  if (isProxyNodeSearchMode.value && proxySearchKeyword.value) {
+    const keyword = proxySearchKeyword.value
+    result = result.filter((name) => matchProxySearchKeyword(name, keyword))
   }
 
-  if (useSmartGroupSort.value && smartOrderMap.value[groupName!]) {
-    const orderMap = smartOrderMap.value[groupName!]
+  const groupKeyword = groupName ? proxyGroupFilterMap.value[groupName] : ''
+  if (groupKeyword) {
+    result = result.filter((name) => matchProxySearchKeyword(name, groupKeyword))
+  }
 
-    return proxies.sort((a, b) => {
-      const ia = orderMap[a] ?? Number.MAX_SAFE_INTEGER
-      const ib = orderMap[b] ?? Number.MAX_SAFE_INTEGER
-      return ia - ib
-    })
+  return result
+}
+
+const sortProxies = (proxies: string[], groupName: string | undefined, latencyMap: LatencyMap) => {
+  if (groupName && useSmartGroupSort.value && smartOrderMap.value[groupName]) {
+    return sortBySmartOrder(proxies, smartOrderMap.value[groupName])
   }
 
   if (proxySortType.value === PROXY_SORT_TYPE.DEFAULT) {
     return proxies
   }
 
-  const proxyGroups: string[] = []
-  const proxyNodes: string[] = []
-
+  const groups: string[] = []
+  const nodes: string[] = []
   proxies.forEach((proxy) => {
-    if (isProxyGroup(proxy)) {
-      proxyGroups.push(proxy)
-    } else {
-      proxyNodes.push(proxy)
-    }
+    ;(isProxyGroup(proxy) ? groups : nodes).push(proxy)
   })
 
-  const getLatencyForSort = (name: string) => {
+  const sortFunc = getSortFunc(proxySortType.value, latencyMap)
+  return groups.concat(nodes.sort(sortFunc))
+}
+
+const sortBySmartOrder = (proxies: string[], orderMap: Record<string, number>) => {
+  return [...proxies].sort((a, b) => {
+    const ia = orderMap[a] ?? Number.MAX_SAFE_INTEGER
+    const ib = orderMap[b] ?? Number.MAX_SAFE_INTEGER
+    return ia - ib
+  })
+}
+
+const getSortFunc = (sortType: PROXY_SORT_TYPE, latencyMap: LatencyMap) => {
+  const latencyFor = (name: string) => {
     const latency = latencyMap.get(name)!
     return latency === 0 ? Infinity : latency
   }
-  const sortFuncMap = {
-    [PROXY_SORT_TYPE.NAME_ASC]: (prev: string, next: string) => prev.localeCompare(next),
-    [PROXY_SORT_TYPE.NAME_DESC]: (prev: string, next: string) => next.localeCompare(prev),
-    [PROXY_SORT_TYPE.LATENCY_ASC]: (prev: string, next: string) =>
-      getLatencyForSort(prev) - getLatencyForSort(next),
-    [PROXY_SORT_TYPE.LATENCY_DESC]: (prev: string, next: string) =>
-      getLatencyForSort(next) - getLatencyForSort(prev),
+  switch (sortType) {
+    case PROXY_SORT_TYPE.NAME_ASC:
+      return (a: string, b: string) => a.localeCompare(b)
+    case PROXY_SORT_TYPE.NAME_DESC:
+      return (a: string, b: string) => b.localeCompare(a)
+    case PROXY_SORT_TYPE.LATENCY_ASC:
+      return (a: string, b: string) => latencyFor(a) - latencyFor(b)
+    case PROXY_SORT_TYPE.LATENCY_DESC:
+      return (a: string, b: string) => latencyFor(b) - latencyFor(a)
+    default:
+      return undefined
   }
-  const sortFunc = sortFuncMap[proxySortType.value]
-
-  return proxyGroups.concat(proxyNodes.sort(sortFunc))
 }

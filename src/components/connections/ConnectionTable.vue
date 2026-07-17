@@ -164,7 +164,7 @@
               ]"
               @contextmenu="handleCellRightClick($event, cell)"
             >
-              <template v-if="cell.column.getIsGrouped()">
+              <template v-if="cell.getIsGrouped()">
                 <template v-if="rows[virtualRow.index].getCanExpand()">
                   <div class="flex items-center overflow-hidden">
                     <component
@@ -187,7 +187,7 @@
                 </template>
               </template>
               <FlexRender
-                v-else
+                v-else-if="!cell.getIsPlaceholder()"
                 :render="
                   cell.getIsAggregated()
                     ? cell.column.columnDef.aggregatedCell
@@ -204,7 +204,11 @@
 </template>
 
 <script setup lang="ts">
-import { blockConnectionByIdAPI, disconnectByIdAPI } from '@/api'
+import {
+  blockConnectionByIdAPI,
+  disconnectByIdAPI,
+  getConnectionDisplayValue,
+} from '@/assembly/connections'
 import { useConnections } from '@/composables/connections'
 import {
   CONNECTION_TAB_TYPE,
@@ -214,18 +218,15 @@ import {
   TABLE_WIDTH_MODE,
 } from '@/constant'
 import {
-  getDestinationFromConnection,
-  getDestinationTypeFromConnection,
-  getHostFromConnection,
-  getInboundUserFromConnection,
-  getNetworkTypeFromConnection,
-  getProcessFromConnection,
+  getConnectionChains,
+  getConnectionDownload,
+  getConnectionSmartBlock,
+  getConnectionStart,
+  getConnectionUpload,
 } from '@/helper'
 import { backgroundImage } from '@/helper/indexeddb'
 import { showNotification } from '@/helper/notification'
-import { getIPLabelFromMap } from '@/helper/sourceip'
-import { fromNow, prettyBytesHelper } from '@/helper/utils'
-import { connectionTabShow, renderConnections } from '@/store/connections'
+import { connectionFilter, connectionTabShow, renderConnections } from '@/store/connections'
 import {
   connectionTableColumns,
   proxyChainDirection,
@@ -267,6 +268,7 @@ import dayjs from 'dayjs'
 import { twMerge } from 'tailwind-merge'
 import { computed, h, ref, type VNode } from 'vue'
 import { useI18n } from 'vue-i18n'
+import HighlightText from '../common/HighlightText.vue'
 import ProxyName from '../proxies/ProxyName.vue'
 const { handlerInfo } = useConnections()
 const columnWidthMap = useStorage('config/table-column-width', {
@@ -285,11 +287,29 @@ const columnWidthMap = useStorage('config/table-column-width', {
   [CONNECTIONS_TABLE_ACCESSOR_KEY.SourcePort]: 100,
   [CONNECTIONS_TABLE_ACCESSOR_KEY.SniffHost]: 200,
   [CONNECTIONS_TABLE_ACCESSOR_KEY.Destination]: 150,
+  [CONNECTIONS_TABLE_ACCESSOR_KEY.GeoIP]: 200,
   [CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime]: 100,
 } as Record<CONNECTIONS_TABLE_ACCESSOR_KEY, number>)
 
 const isManualTable = computed(() => tableWidthMode.value === TABLE_WIDTH_MODE.MANUAL)
 const { t } = useI18n()
+const getTableDisplayValue = (connection: Connection, key: CONNECTIONS_TABLE_ACCESSOR_KEY) => {
+  return getConnectionDisplayValue(connection, key, {
+    mode: 'table',
+    proxyChainDirection: proxyChainDirection.value,
+    showFullProxyChain: showFullProxyChain.value,
+  })
+}
+
+const highlightedCell =
+  (key: CONNECTIONS_TABLE_ACCESSOR_KEY) =>
+  ({ row }: { row: Row<Connection> }) => {
+    return h(HighlightText, {
+      text: getTableDisplayValue(row.original, key),
+      filter: connectionFilter.value,
+    })
+  }
+
 const columns: ColumnDef<Connection>[] = [
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Close),
@@ -314,7 +334,7 @@ const columns: ColumnDef<Connection>[] = [
         ],
       )
 
-      if (row.original.metadata.smartBlock === 'normal') {
+      if (getConnectionSmartBlock(row.original) === 'normal') {
         const degradeButton = h(
           'button',
           {
@@ -342,43 +362,43 @@ const columns: ColumnDef<Connection>[] = [
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Type),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Type,
-    accessorFn: getNetworkTypeFromConnection,
+    accessorFn: (original) => getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Type),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.Type),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Process),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Process,
-    accessorFn: getProcessFromConnection,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Process),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.Process),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Host),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Host,
-    accessorFn: getHostFromConnection,
+    accessorFn: (original) => getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Host),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.Host),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.SniffHost),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.SniffHost,
-    accessorFn: (original) => original.metadata.sniffHost || '-',
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.SniffHost),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.SniffHost),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Rule),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Rule,
-    accessorFn: (original) =>
-      !original.rulePayload ? original.rule : `${original.rule}: ${original.rulePayload}`,
+    accessorFn: (original) => getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Rule),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.Rule),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Chains),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Chains,
-    accessorFn: (original) => {
-      const chains = [...original.chains]
-
-      return proxyChainDirection.value === PROXY_CHAIN_DIRECTION.REVERSE
-        ? chains.join(' → ')
-        : chains.reverse().join(' → ')
-    },
+    accessorFn: (original) => getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Chains),
     cell: ({ row }) => {
       const chains: VNode[] = []
       const isReverse = proxyChainDirection.value === PROXY_CHAIN_DIRECTION.REVERSE
-      let originChains = row.original.chains
+      let originChains = getConnectionChains(row.original)
 
       if (!showFullProxyChain.value && originChains.length > 2) {
         originChains = [originChains[0], originChains[originChains.length - 1]]
@@ -386,7 +406,7 @@ const columns: ColumnDef<Connection>[] = [
 
       // 完整显示所有代理链
       originChains.forEach((chain, index) => {
-        chains.unshift(h(ProxyName, { name: chain, key: chain }))
+        chains.unshift(h(ProxyName, { name: chain, key: chain, filter: connectionFilter.value }))
 
         if (index < originChains.length - 1) {
           chains.unshift(
@@ -410,25 +430,34 @@ const columns: ColumnDef<Connection>[] = [
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Outbound),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Outbound,
-    accessorFn: (original) => original.chains[0],
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Outbound),
     cell: ({ row }) => {
-      return h(ProxyName, { name: row.original.chains[0] })
+      return h(ProxyName, {
+        name: getConnectionChains(row.original)[0],
+        filter: connectionFilter.value,
+      })
     },
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime),
     enableGrouping: false,
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime,
-    accessorFn: (original) => fromNow(original.start),
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime),
     sortingFn: (prev, next) =>
-      dayjs(next.original.start).valueOf() - dayjs(prev.original.start).valueOf(),
+      dayjs(getConnectionStart(next.original)).valueOf() -
+      dayjs(getConnectionStart(prev.original)).valueOf(),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.DlSpeed),
     enableGrouping: false,
     sortDescFirst: true,
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.DlSpeed,
-    accessorFn: (original) => `${prettyBytesHelper(original.downloadSpeed)}/s`,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.DlSpeed),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.DlSpeed),
     sortingFn: (prev, next) => prev.original.downloadSpeed - next.original.downloadSpeed,
   },
   {
@@ -436,7 +465,9 @@ const columns: ColumnDef<Connection>[] = [
     enableGrouping: false,
     sortDescFirst: true,
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.UlSpeed,
-    accessorFn: (original) => `${prettyBytesHelper(original.uploadSpeed)}/s`,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.UlSpeed),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.UlSpeed),
     sortingFn: (prev, next) => prev.original.uploadSpeed - next.original.uploadSpeed,
   },
   {
@@ -444,48 +475,90 @@ const columns: ColumnDef<Connection>[] = [
     enableGrouping: false,
     sortDescFirst: true,
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Download,
-    accessorFn: (original) => prettyBytesHelper(original.download),
-    sortingFn: (prev, next) => prev.original.download - next.original.download,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Download),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.Download),
+    sortingFn: (prev, next) =>
+      getConnectionDownload(prev.original) - getConnectionDownload(next.original),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Upload),
     enableGrouping: false,
     sortDescFirst: true,
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Upload,
-    accessorFn: (original) => prettyBytesHelper(original.upload),
-    sortingFn: (prev, next) => prev.original.upload - next.original.upload,
+    accessorFn: (original) => getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Upload),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.Upload),
+    sortingFn: (prev, next) =>
+      getConnectionUpload(prev.original) - getConnectionUpload(next.original),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.SourceIP),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.SourceIP,
-    accessorFn: (original) => {
-      return getIPLabelFromMap(original.metadata.sourceIP)
-    },
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.SourceIP),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.SourceIP),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.SourcePort),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.SourcePort,
-    accessorFn: (original) => original.metadata.sourcePort,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.SourcePort),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.SourcePort),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Destination),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.Destination,
-    accessorFn: getDestinationFromConnection,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Destination),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.Destination),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.DestinationType),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.DestinationType,
-    accessorFn: getDestinationTypeFromConnection,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.DestinationType),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.DestinationType),
+  },
+  {
+    header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.GeoIP),
+    id: CONNECTIONS_TABLE_ACCESSOR_KEY.GeoIP,
+    accessorFn: (original) => getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.GeoIP),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.GeoIP),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.RemoteAddress),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.RemoteAddress,
-    accessorFn: (original) => original.metadata.remoteDestination || '-',
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.RemoteAddress),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.RemoteAddress),
   },
   {
     header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.InboundUser),
     id: CONNECTIONS_TABLE_ACCESSOR_KEY.InboundUser,
-    accessorFn: getInboundUserFromConnection,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.InboundUser),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.InboundUser),
+  },
+  {
+    header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.Protocol),
+    id: CONNECTIONS_TABLE_ACCESSOR_KEY.Protocol,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.Protocol),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.Protocol),
+  },
+  {
+    header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.OutboundType),
+    id: CONNECTIONS_TABLE_ACCESSOR_KEY.OutboundType,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.OutboundType),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.OutboundType),
+  },
+  {
+    header: () => t(CONNECTIONS_TABLE_ACCESSOR_KEY.FromOutbound),
+    id: CONNECTIONS_TABLE_ACCESSOR_KEY.FromOutbound,
+    accessorFn: (original) =>
+      getTableDisplayValue(original, CONNECTIONS_TABLE_ACCESSOR_KEY.FromOutbound),
+    cell: highlightedCell(CONNECTIONS_TABLE_ACCESSOR_KEY.FromOutbound),
   },
 ]
 

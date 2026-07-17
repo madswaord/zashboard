@@ -17,7 +17,14 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
     label: 'backendSettings',
     items: [
       { key: `${SETTINGS_MENU_KEY.backend}.backendSwitch`, label: 'backend' },
-      { key: `${SETTINGS_MENU_KEY.backend}.actions`, label: 'actions' },
+      { key: `${SETTINGS_MENU_KEY.backend}.upgradeCore`, label: 'upgradeCore' },
+      { key: `${SETTINGS_MENU_KEY.backend}.restartCore`, label: 'restartCore' },
+      { key: `${SETTINGS_MENU_KEY.backend}.reloadConfigs`, label: 'reloadConfigs' },
+      { key: `${SETTINGS_MENU_KEY.backend}.updateConfigs`, label: 'updateConfigs' },
+      { key: `${SETTINGS_MENU_KEY.backend}.updateGeoDatabase`, label: 'updateGeoDatabase' },
+      { key: `${SETTINGS_MENU_KEY.backend}.flushDNSCache`, label: 'flushDNSCache' },
+      { key: `${SETTINGS_MENU_KEY.backend}.flushFakeIP`, label: 'flushFakeIP' },
+      { key: `${SETTINGS_MENU_KEY.backend}.flushSmartWeights`, label: 'flushSmartWeights' },
       { key: `${SETTINGS_MENU_KEY.backend}.dnsQuery`, label: 'DNSQuery' },
       { key: `${SETTINGS_MENU_KEY.backend}.ports`, label: 'ports' },
       { key: `${SETTINGS_MENU_KEY.backend}.tunMode`, label: 'tunMode' },
@@ -72,6 +79,14 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       },
       { key: `${SETTINGS_MENU_KEY.general}.IPInfoAPI`, label: 'IPInfoAPI' },
       {
+        key: `${SETTINGS_MENU_KEY.general}.geoipCountryDatabaseURL`,
+        label: 'geoipCountryDatabaseURL',
+      },
+      {
+        key: `${SETTINGS_MENU_KEY.general}.geoipASNDatabaseURL`,
+        label: 'geoipASNDatabaseURL',
+      },
+      {
         key: `${SETTINGS_MENU_KEY.general}.scrollAnimationEffect`,
         label: 'scrollAnimationEffect',
       },
@@ -80,6 +95,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
       {
         key: `${SETTINGS_MENU_KEY.general}.disablePullToRefresh`,
         label: 'disablePullToRefresh',
+      },
+      {
+        key: `${SETTINGS_MENU_KEY.general}.shortcuts`,
+        label: 'keyboardShortcuts',
       },
       {
         key: `${SETTINGS_MENU_KEY.general}.displayAllFeatures`,
@@ -116,6 +135,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
     key: SETTINGS_MENU_KEY.proxies,
     label: 'proxySettings',
     items: [
+      { key: `${SETTINGS_MENU_KEY.proxies}.speedtestMode`, label: 'speedtestMode' },
       { key: `${SETTINGS_MENU_KEY.proxies}.speedtestUrl`, label: 'speedtestUrl' },
       { key: `${SETTINGS_MENU_KEY.proxies}.speedtestTimeout`, label: 'speedtestTimeout' },
       { key: `${SETTINGS_MENU_KEY.proxies}.lowLatency`, label: 'lowLatencyDesc' },
@@ -126,6 +146,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         label: 'independentLatencyTest',
       },
       { key: `${SETTINGS_MENU_KEY.proxies}.groupTestUrls`, label: 'groupTestUrls' },
+      {
+        key: `${SETTINGS_MENU_KEY.proxies}.proxyFolderMode`,
+        label: 'proxyFolderMode',
+      },
       {
         key: `${SETTINGS_MENU_KEY.proxies}.twoColumnProxyGroup`,
         label: 'twoColumnProxyGroup',

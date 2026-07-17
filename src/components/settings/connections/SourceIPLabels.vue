@@ -1,5 +1,24 @@
 <template>
-  <div class="setting-item">
+  <SettingItem
+    v-if="settingKey"
+    :setting-key="settingKey"
+    :when="showTrigger"
+  >
+    <div class="setting-item-label">
+      {{ $t('sourceIPLabels') }}
+      <template v-if="sourceIPLabelList.length"> ({{ sourceIPLabelList.length }}) </template>
+    </div>
+    <button
+      class="btn btn-sm"
+      @click="dialogVisible = true"
+    >
+      <PencilSquareIcon class="h-4 w-4" />
+    </button>
+  </SettingItem>
+  <div
+    v-else-if="showTrigger"
+    class="setting-item"
+  >
     <div class="setting-item-label">
       {{ $t('sourceIPLabels') }}
       <template v-if="sourceIPLabelList.length"> ({{ sourceIPLabelList.length }}) </template>
@@ -72,6 +91,7 @@
 </template>
 
 <script setup lang="ts">
+import SettingItem from '@/components/settings/SettingItem.vue'
 import { disableSwipe } from '@/composables/swipe'
 import { sourceIPLabelList } from '@/store/settings'
 import type { SourceIPLabel } from '@/types'
@@ -84,12 +104,38 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useSessionStorage } from '@vueuse/core'
 import { v4 as uuid } from 'uuid'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Draggable from 'vuedraggable'
 import DialogWrapper from '../../common/DialogWrapper.vue'
 import SourceIPInput from './SourceIPInput.vue'
 
-const dialogVisible = useSessionStorage('cache/sourceip-label-dialog-visible', false)
+const props = withDefaults(
+  defineProps<{
+    defaultKey?: string
+    modelValue?: boolean
+    showTrigger?: boolean
+    settingKey?: string
+  }>(),
+  {
+    defaultKey: '',
+    modelValue: undefined,
+    showTrigger: true,
+    settingKey: '',
+  },
+)
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+}>()
+
+const cachedDialogVisible = useSessionStorage('cache/sourceip-label-dialog-visible', false)
+const dialogVisible = computed({
+  get: () => props.modelValue ?? cachedDialogVisible.value,
+  set: (value: boolean) => {
+    cachedDialogVisible.value = value
+    emit('update:modelValue', value)
+  },
+})
 const newLabelForIP = ref<Omit<SourceIPLabel, 'id'>>({
   key: '',
   label: '',
@@ -97,7 +143,7 @@ const newLabelForIP = ref<Omit<SourceIPLabel, 'id'>>({
 
 const resetNewLabelForIP = () => {
   newLabelForIP.value = {
-    key: '',
+    key: props.defaultKey,
     label: '',
   }
 }
@@ -133,8 +179,21 @@ const handlerLabelUpdate = (sourceIP: Partial<SourceIPLabel>) => {
 }
 
 watch(dialogVisible, (visible, wasVisible) => {
+  if (visible && props.defaultKey && !newLabelForIP.value.key) {
+    newLabelForIP.value.key = props.defaultKey
+  }
+
   if (!visible && wasVisible) {
     handlerLabelAdd(false)
   }
 })
+
+watch(
+  () => props.defaultKey,
+  (defaultKey) => {
+    if (dialogVisible.value && defaultKey && !newLabelForIP.value.key) {
+      newLabelForIP.value.key = defaultKey
+    }
+  },
+)
 </script>

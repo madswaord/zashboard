@@ -2,6 +2,260 @@
 
 # Changelog
 
+## [3.15.0](https://github.com/Zephyruso/zashboard/compare/v3.14.0...v3.15.0) (2026-07-10)
+
+
+### Features
+
+* **overview:** aggregate traffic by proxy group ([2b70b72](https://github.com/Zephyruso/zashboard/commit/2b70b72a5eeafa96d162374768b18aed1c81803f))
+
+
+### Bug Fixes
+
+* resolve proxy group truncation in modal ([0fc4738](https://github.com/Zephyruso/zashboard/commit/0fc4738a2324792dd600622d51e7f6bfdda9a6e8))
+* **settings:** remove duplicate text between labels and action buttons ([a918f54](https://github.com/Zephyruso/zashboard/commit/a918f5498b3d38c2c735cff69553f39987a89d9b))
+* **settings:** update backend settings actions and improve visibility logic ([629be82](https://github.com/Zephyruso/zashboard/commit/629be82ebd66682d4c817054216f3a5747089b68))
+* **theme:** update light-neutral color palette for improved contrast ([dffcc2b](https://github.com/Zephyruso/zashboard/commit/dffcc2b6871de77baa2fb8e6a1a10b288e4a0b07))
+
+## [3.14.0](https://github.com/Zephyruso/zashboard/compare/v3.13.1...v3.14.0) (2026-07-09)
+
+
+### Features
+
+* **confirm-dialog:** implement confirmation dialog for settings overrides and add ConfirmDialogHost component ([2fa7494](https://github.com/Zephyruso/zashboard/commit/2fa74942c9e8bb92c692cd615ce2e5320b4a988b))
+* **proxies:** add proxy group chain expand button and drill-in modal ([#714](https://github.com/Zephyruso/zashboard/issues/714)) ([36bed49](https://github.com/Zephyruso/zashboard/commit/36bed49439671855251041e46fc5bd5fe2272c28))
+* refactor data handling in charts to support HistoryPoint structure and improve tooltip formatting ([a6c4f6e](https://github.com/Zephyruso/zashboard/commit/a6c4f6e43ad06f08e5340d1a5789d08302e40616))
+* **settings:** add confirmation dialogs for settings overrides on sync and import ([6ad150f](https://github.com/Zephyruso/zashboard/commit/6ad150fcf8a15020883507b0b4cc2a8fb79a6742))
+
+
+### Bug Fixes
+
+* **proxy-group-chain-modal:** adjust height class for better layout consistency ([d5783eb](https://github.com/Zephyruso/zashboard/commit/d5783eb420c101cd0541db4dc3f230a43098cab3))
+* standardize toggle class by removing 'toggle-sm' from checkbox inputs ([59413bd](https://github.com/Zephyruso/zashboard/commit/59413bd98fa0667fed4c7053faff6592ff9d9e0c))
+
+## [3.13.1](https://github.com/Zephyruso/zashboard/compare/v3.13.0...v3.13.1) (2026-07-03)
+
+
+### Bug Fixes
+
+* **router:** simplify setup redirection logic in beforeEach guard ([faa9f9e](https://github.com/Zephyruso/zashboard/commit/faa9f9e9e9d7ad352be77a66383b59f7ca6f27f5))
+* **sing-box-r:** add version check for provider latency fetching logic ([728588e](https://github.com/Zephyruso/zashboard/commit/728588e28264216746f47a5aed9f618f0b2f17a9))
+
+## [3.13.0](https://github.com/Zephyruso/zashboard/compare/v3.12.1...v3.13.0) (2026-07-03)
+
+
+### Features
+
+* **connections:** add local GeoIP attribution column ([6ac5eb0](https://github.com/Zephyruso/zashboard/commit/6ac5eb0e269473d902107b64b7414514d9b7979d))
+* enhance ConnectionCardSettings and TableSettings components with improved UI and functionality; add internationalization support for new labels ([b69559b](https://github.com/Zephyruso/zashboard/commit/b69559bdb2eedf586e301e653b614d2cff1152f8))
+
+
+### Bug Fixes
+
+* **overview:** source sing-box traffic totals from the status statistics stream ([67e5011](https://github.com/Zephyruso/zashboard/commit/67e501102d9459e05f24d9c08a2959eef0c894d3))
+* **proxies:** use provider-scoped healthcheck endpoint for provider node latency test ([bde2145](https://github.com/Zephyruso/zashboard/commit/bde214501be18fcaaad2245593d025600d770e05))
+* **singbox:** carry persistent subscriptions over WebSocket to free the HTTP connection pool ([e9880fa](https://github.com/Zephyruso/zashboard/commit/e9880fabad972edb252954efc8180959d24cbe96))
+* **tailscale:** clear stale ping results when peer dialog closes or switches peers ([fafc2fb](https://github.com/Zephyruso/zashboard/commit/fafc2fbb28afb701172a677bd18671cd3aeedd43))
+
+## [3.12.1](https://github.com/Zephyruso/zashboard/compare/v3.12.0...v3.12.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* add download speed display to ProxyGroupHeaderForMobile component ([9544f9c](https://github.com/Zephyruso/zashboard/commit/9544f9c98416a465839913740eec734fdefc6832))
+* enhance layout and styling of ChartsCard, NetworkCard, and FolderTopBar components for improved responsiveness ([db75744](https://github.com/Zephyruso/zashboard/commit/db75744540d523654ac0fd48337e071ed01e37ad))
+* replace icons in BackendSwitch component for consistency ([d2f9452](https://github.com/Zephyruso/zashboard/commit/d2f9452a91b8c3bbb8b721560fcaf9e2dc64c99b))
+* update routing for manual backend setup and enhance backend retrieval logic in SetupPage ([656412e](https://github.com/Zephyruso/zashboard/commit/656412e25e2ca27064d87d4cbf4b86dd80a6d486))
+
+## [3.12.0](https://github.com/Zephyruso/zashboard/compare/v3.11.0...v3.12.0) (2026-06-29)
+
+
+### Features
+
+* add BackendUptime component to display server uptime and integrate startedAt functionality ([bed57f2](https://github.com/Zephyruso/zashboard/commit/bed57f212e412a3f9a891527ae03d76c358f8fa7))
+* add keyboard shortcut for toggling manage hidden group ([f1d81e9](https://github.com/Zephyruso/zashboard/commit/f1d81e9fad587e8191e74dadf173baa0d979ed44))
+* enhance ConnectionStatus component with latency statistics and add LatencyChart for visual representation ([314afeb](https://github.com/Zephyruso/zashboard/commit/314afebbc474d0c876fa0f308c7ecc87818db5c5))
+
+
+### Bug Fixes
+
+* add icon mapping to proxies based on user configuration for enhanced visual representation ([357a9d5](https://github.com/Zephyruso/zashboard/commit/357a9d52f76973196c5eecfecd6990230ad7fe72))
+* adjust padding and styling in SettingsCtrl and SettingsPage components ([0d53688](https://github.com/Zephyruso/zashboard/commit/0d536888d23683cb4e0d3b471d51fc7e2c1105d3))
+* adjust setting item label flex properties and update select width in ProxiesSettings component ([83dda30](https://github.com/Zephyruso/zashboard/commit/83dda306721f3a390b4f57fafc9c78d013fe07a9))
+* enhance settings menu localization with new translations and update layout for better responsiveness ([5ea0645](https://github.com/Zephyruso/zashboard/commit/5ea0645f0c6d1f024f3a9c28f300ff0554f277ee))
+* enhance visual consistency by applying 'need-blur' class to various components ([781025e](https://github.com/Zephyruso/zashboard/commit/781025e0082d81d769ffc9176efddbe534da7299))
+* optimize rendering of selects in ConnectionHistory and improve button opacity handling in SetupPage ([396dc04](https://github.com/Zephyruso/zashboard/commit/396dc04567e2da1ab4433aa87b0f39a17da5be25))
+* remove default appearance for select utility to enhance styling ([6f65c3b](https://github.com/Zephyruso/zashboard/commit/6f65c3bf9d07384d92ada902ba46b45007fa35f1))
+* treat sing-box connections with closedAt &gt; 0 as closed ([9150a53](https://github.com/Zephyruso/zashboard/commit/9150a53e561bab97c14a924eb94bb98b197b64fb))
+* update backend type handling in setup process and enhance README with backend API selection ([87ccd26](https://github.com/Zephyruso/zashboard/commit/87ccd26f267f3610b95500316237699c1b9c972c))
+
+## [3.11.0](https://github.com/Zephyruso/zashboard/compare/v3.10.1...v3.11.0) (2026-06-24)
+
+
+### Features
+
+* add support for sing-box native backend and refactor proxy handling ([4e2f3b5](https://github.com/Zephyruso/zashboard/commit/4e2f3b5712b3e311a252e3dd95484bd6dda30b67))
+* add USB/IP panel and server components ([8697c39](https://github.com/Zephyruso/zashboard/commit/8697c391dbebaa040aee1e31c983b6f3bb4cfbba))
+* implement SegmentedControl component and refactor tab navigation in various controls ([4fede44](https://github.com/Zephyruso/zashboard/commit/4fede4426373e5adf45fa6a9c57ac57bf60f0c74))
+* Refactor connection handling and enhance UI components ([8cee6b3](https://github.com/Zephyruso/zashboard/commit/8cee6b30a33bc1ad7d13cb7da7281f77f0b37972))
+
+
+### Bug Fixes
+
+* enhance input and toggle styles for better user experience ([629a898](https://github.com/Zephyruso/zashboard/commit/629a8986432fb906e47ff24669290a9ffe754b9f))
+* optimize backend list filtering and improve scope handling in SourceIPInput component ([c380d84](https://github.com/Zephyruso/zashboard/commit/c380d84c490ae1ee1b92e8d2e64dbd45800289d8))
+* prevent viewport panning on iOS by pinning scroll position ([953df88](https://github.com/Zephyruso/zashboard/commit/953df8811a04dc64b7c30b2898f3cfc5c6c24de1))
+* update dark-neutral theme colors for improved contrast and accessibility ([f2c8fa9](https://github.com/Zephyruso/zashboard/commit/f2c8fa919dabbcd69117a959a6ef7fa7048dee60))
+
+## [3.10.1](https://github.com/Zephyruso/zashboard/compare/v3.10.0...v3.10.1) (2026-06-17)
+
+
+### Bug Fixes
+
+* adjust padding in ConnectionDetails component for improved layout ([013a544](https://github.com/Zephyruso/zashboard/commit/013a5443a8ce2b852c263e98e08d0f33e64e9de7))
+* dock blur style in proxy page ([d10b9c7](https://github.com/Zephyruso/zashboard/commit/d10b9c79335cbaf37e3617a3cd33e6c243fc40a6))
+* sidebar active tab text invisible in dim theme ([5edc33b](https://github.com/Zephyruso/zashboard/commit/5edc33bbf1e95facd4cec4acc1a715e11c6d5bf3))
+* the mask style of proxy group mobile ([10bac17](https://github.com/Zephyruso/zashboard/commit/10bac177660449fc43109703cb4dfa62f91b4654))
+
+## [3.10.0](https://github.com/Zephyruso/zashboard/compare/v3.9.0...v3.10.0) (2026-06-16)
+
+
+### Features
+
+* add goroutines tracking and update related components for improved performance monitoring ([e6458f5](https://github.com/Zephyruso/zashboard/commit/e6458f5ff5a1222aef6fba3a1bf5dcf16283013c))
+* add sing-box native API support and font selection options ([6a4f752](https://github.com/Zephyruso/zashboard/commit/6a4f7525880cd4c4ff830cbed1a92e6935cbe30b))
+* enhance TailscalePeerDialog with copy functionality and notifications ([7ed0a91](https://github.com/Zephyruso/zashboard/commit/7ed0a917da5338a260e9500ccfd71488d19cce8c))
+* support sing-box native API ([d719c26](https://github.com/Zephyruso/zashboard/commit/d719c265a1b2420ff412bbf7ab844d6d6a1c9e54))
+* update theme styles and add new neutral themes ([b7d7c14](https://github.com/Zephyruso/zashboard/commit/b7d7c14d4bb122d322083d90b13cf2ae1fd10903))
+
+
+### Bug Fixes
+
+* implement viewport height tracking and keyboard inset handling for improved mobile experience ([b48a450](https://github.com/Zephyruso/zashboard/commit/b48a450719f5de6c10916e487b106392d0e6bca4))
+* update viewport height handling for terminal and improve CSS theme colors ([870249a](https://github.com/Zephyruso/zashboard/commit/870249a8ad03398cd918446ed79f9361273d53d7))
+
+## [3.9.0](https://github.com/Zephyruso/zashboard/compare/v3.8.0...v3.9.0) (2026-06-12)
+
+
+### Features
+
+* add blur mask effect to proxies folder top bar when stuck ([e7a4216](https://github.com/Zephyruso/zashboard/commit/e7a421659ee81740a783a1c918f17559a736e2d9)), closes [#675](https://github.com/Zephyruso/zashboard/issues/675)
+* add connection log handling and UI for displaying same connection logs for sing-box ([5b66582](https://github.com/Zephyruso/zashboard/commit/5b665823d996dd55e0f819f66d391738109952df))
+* add transition effects for expandable rule sections in RuleCard component ([f3da572](https://github.com/Zephyruso/zashboard/commit/f3da572881861622b0da63c7b53c0345ba111e62))
+* refactor proxy group components for improved mobile support and UI consistency ([64dace7](https://github.com/Zephyruso/zashboard/commit/64dace79c3866044e991e49c8cf5f685eac27a8d)), closes [#676](https://github.com/Zephyruso/zashboard/issues/676)
+
+
+### Bug Fixes
+
+* adjust width styles for better layout consistency in mobile proxy components ([fa7664f](https://github.com/Zephyruso/zashboard/commit/fa7664fb640800b6a2caeab93faabd8d8d68db10))
+* clear keyboard shortcut instead of resetting to default ([cdae6bf](https://github.com/Zephyruso/zashboard/commit/cdae6bfa68add44319e8a717658e6d536c2799ba)), closes [#673](https://github.com/Zephyruso/zashboard/issues/673)
+
+## [3.8.0](https://github.com/Zephyruso/zashboard/compare/v3.7.1...v3.8.0) (2026-06-07)
+
+
+### Features
+
+* add keyboard shortcut (S) to toggle backend settings dialog ([#671](https://github.com/Zephyruso/zashboard/issues/671)) ([2f79504](https://github.com/Zephyruso/zashboard/commit/2f79504d93dbfebba54832acf073ea8029cb8278))
+* enhance connection and log components with search highlighting functionality ([0f344c3](https://github.com/Zephyruso/zashboard/commit/0f344c327540ea6415df8cea7708b45884f79a7c))
+* show active backend address in title when multiple backends exist ([9ee709e](https://github.com/Zephyruso/zashboard/commit/9ee709e28dd5ae64a06d733ea04deefd48755e09))
+
+
+### Bug Fixes
+
+* adjust layout of connection details by removing unnecessary gaps and adding margin to icons ([7e20100](https://github.com/Zephyruso/zashboard/commit/7e20100352b2bd933a290a673c33531df20d23ea))
+* handle optional properties in IP info retrieval and improve menu handling in TextInput component ([98ba481](https://github.com/Zephyruso/zashboard/commit/98ba4815506af12940099b8d199a2d0eb03a4f77))
+* update menu handling in search input to hide tooltip when no menus remain ([2c029ee](https://github.com/Zephyruso/zashboard/commit/2c029eef090b5981cde74238d4267c933c70d27f))
+
+## [3.7.1](https://github.com/Zephyruso/zashboard/compare/v3.7.0...v3.7.1) (2026-06-01)
+
+
+### Bug Fixes
+
+* add '/storage/zashboard' to ignoreNotificationUrls and update FolderTopBar for swipe handling ([1ddbf1e](https://github.com/Zephyruso/zashboard/commit/1ddbf1e083b2521d55ff768a62e60e467a8808ee))
+
+## [3.7.0](https://github.com/Zephyruso/zashboard/compare/v3.6.0...v3.7.0) (2026-06-01)
+
+
+### Features
+
+* add proxy folder management feature ([379ec4e](https://github.com/Zephyruso/zashboard/commit/379ec4e1e9b74f149b7d0ede84717e980796977f))
+* enhance search functionality with testAny method for improved regex matching ([4c8faaf](https://github.com/Zephyruso/zashboard/commit/4c8faafcced2b283709ec58a66b0d6382374bb25))
+* implement proxy folder mode with improved settings and UI updates ([c36b593](https://github.com/Zephyruso/zashboard/commit/c36b59398a3b4ade26bd6dcd81158a908f79ceda))
+* refactor folder management UI components for improved layout and responsiveness ([8d6b58a](https://github.com/Zephyruso/zashboard/commit/8d6b58ad784b7f4bf882c6af6a17823feebf5675))
+* Sync settings after adding backend ([#656](https://github.com/Zephyruso/zashboard/issues/656)) ([f554b27](https://github.com/Zephyruso/zashboard/commit/f554b27eeba714f4553fc46cc873dc5e79035884))
+
+
+### Bug Fixes
+
+* **SetupPage:** improve button styling for better responsiveness and text truncation ([3bcc915](https://github.com/Zephyruso/zashboard/commit/3bcc915177bd736c3e93d25ec60a4a10baa9fd95))
+
+## [3.6.0](https://github.com/Zephyruso/zashboard/compare/v3.5.1...v3.6.0) (2026-05-26)
+
+
+### Features
+
+* add proxy node search mode ([ef8d3ee](https://github.com/Zephyruso/zashboard/commit/ef8d3ee244410fb499bf1ef380e2a9c4916793b9))
+* **ProxiesSettings:** add speedtest mode configuration with multilingual support ([64241ee](https://github.com/Zephyruso/zashboard/commit/64241eecbe365f276e4ad315450869807ee99dc5))
+* unify search with regex matching ([5a23827](https://github.com/Zephyruso/zashboard/commit/5a2382752be3448874bb1678f77ddf548b800862))
+
+
+### Bug Fixes
+
+* **DnsQuery:** enhance DNS query input with history management and improved result display ([5b13c53](https://github.com/Zephyruso/zashboard/commit/5b13c537145ca38f6896f299a30fe5228fe48145))
+* **proxies:** update global proxy handling to utilize getProxyGroupChains for improved filtering ([f750c66](https://github.com/Zephyruso/zashboard/commit/f750c665891a1571212667d72eb309a45f7b10fe))
+* **SourceIPFilter:** optimize source IP options handling in watch function ([58364be](https://github.com/Zephyruso/zashboard/commit/58364be31f7a13aebb74333864ea6fe38eabe051))
+
+## [3.5.1](https://github.com/Zephyruso/zashboard/compare/v3.5.0...v3.5.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **ConnectionTable:** correct usage of cell methods for grouping and placeholders ([8cfd9b5](https://github.com/Zephyruso/zashboard/commit/8cfd9b5e1f0ee4b358943be7885973165920716b))
+* **controls:** enhance layout and styling of settings components for improved usability ([8af8693](https://github.com/Zephyruso/zashboard/commit/8af86937d94c582a55b02b5cb23cd9ca656bd506))
+* **proxies:** provider search functionality with dynamic placeholders and localization for proxy nodes ([5816d09](https://github.com/Zephyruso/zashboard/commit/5816d09f9f247c06ef82817830cd93676a6e0148))
+
+## [3.5.0](https://github.com/Zephyruso/zashboard/compare/v3.4.0...v3.5.0) (2026-04-20)
+
+
+### Features
+
+* **connections:** add additional metadata fields to search connections ([3df4b58](https://github.com/Zephyruso/zashboard/commit/3df4b5893742d6e60de7e03f1ac79f26b9e39644))
+* **connections:** add source IP editing functionality in connection details ([b34b83a](https://github.com/Zephyruso/zashboard/commit/b34b83a854c1cbe968ba98e05603ff57d75e3086))
+* **dashboard:** replace ImportSettings with DashboardSettings component and update related functionality ([fd07743](https://github.com/Zephyruso/zashboard/commit/fd07743d6ff6a148040b2e46d1feb5333ab3c05f))
+* **proxies:** add ProxyGroupFilter component and integrate filtering functionality ([b6107d3](https://github.com/Zephyruso/zashboard/commit/b6107d30bd60ebcf36048b25efc1a7c7cbc9e78a))
+* **settings:** add single column layout toggle for settings page ([94639f8](https://github.com/Zephyruso/zashboard/commit/94639f8bbbc8d46aeb6159504ab2e3f16c84cf4f))
+* **settings:** implement sync settings functionality and enhance import/export options ([a21d9ea](https://github.com/Zephyruso/zashboard/commit/a21d9ea6ef31d2aae8cadaf4719f23bc06715908))
+
+## [3.4.0](https://github.com/Zephyruso/zashboard/compare/v3.3.0...v3.4.0) (2026-04-13)
+
+
+### Features
+
+* **backend:** add success notification for flushing smart weights ([426491f](https://github.com/Zephyruso/zashboard/commit/426491f55ac6a37366a29b10a01b49bad2ac3460))
+* **proxies:** add option to disable text selection on proxies page ([#631](https://github.com/Zephyruso/zashboard/issues/631)) ([2db4168](https://github.com/Zephyruso/zashboard/commit/2db4168e70712ef26ca3abe3222ff27600b62f11))
+* **shortcuts:** add backend switch shortcuts ([52f3686](https://github.com/Zephyruso/zashboard/commit/52f3686c2eaceb47219f3ba5d70cfc0e2aaee309))
+* **shortcuts:** add configurable keyboard shortcuts ([c467b4f](https://github.com/Zephyruso/zashboard/commit/c467b4f5fd60a3a13a13149f5a4a5ff1f5a3f7d7))
+
+
+### Bug Fixes
+
+* **btn:** primary btn style with background ([59324be](https://github.com/Zephyruso/zashboard/commit/59324bef543ada3cfd478a011459e0993e3d5518))
+
+## [3.3.0](https://github.com/Zephyruso/zashboard/compare/v3.2.0...v3.3.0) (2026-04-09)
+
+
+### Features
+
+* **connections:** Add auto-toggle display type for connections page ([184ed82](https://github.com/Zephyruso/zashboard/commit/184ed823d3014445f8e524aa1aeaf47514ad32c0))
+* **ConnectionTable:** add no data message to ConnectionTable component ([925980c](https://github.com/Zephyruso/zashboard/commit/925980c8c94376336c5e31d28d71b2d07abd5240))
+* **controls:** update sorting icons in ConnectionCtrl with new design ([1191b70](https://github.com/Zephyruso/zashboard/commit/1191b701b3b8a2ab793a231923ee4a8bdd8c60e1))
+
+
+### Bug Fixes
+
+* prevent TypeError when proxiesRef is null during scroll or waitTick ([#629](https://github.com/Zephyruso/zashboard/issues/629)) ([4b0f0f1](https://github.com/Zephyruso/zashboard/commit/4b0f0f144a9c69cdbb0c7dd69916f335d962ab20))
+* **sidebar:** adjust collapse animation timing ([5b1aa2f](https://github.com/Zephyruso/zashboard/commit/5b1aa2f597423a48538087c7ccb58405ceef4192))
+
 ## [3.2.0](https://github.com/Zephyruso/zashboard/compare/v3.1.0...v3.2.0) (2026-04-03)
 
 

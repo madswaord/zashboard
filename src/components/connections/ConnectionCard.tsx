@@ -1,4 +1,8 @@
-import { blockConnectionByIdAPI, disconnectByIdAPI } from '@/api'
+import {
+  blockConnectionByIdAPI,
+  disconnectByIdAPI,
+  getConnectionDisplayValue,
+} from '@/assembly/connections'
 import { useBounceOnVisible } from '@/composables/bouncein'
 import { useConnections } from '@/composables/connections'
 import {
@@ -6,18 +10,9 @@ import {
   CONNECTIONS_TABLE_ACCESSOR_KEY,
   PROXY_CHAIN_DIRECTION,
 } from '@/constant'
-import {
-  getDestinationFromConnection,
-  getDestinationTypeFromConnection,
-  getHostFromConnection,
-  getInboundUserFromConnection,
-  getNetworkTypeFromConnection,
-  getProcessFromConnection,
-} from '@/helper'
-import { getIPLabelFromMap } from '@/helper/sourceip'
-import { fromNow, prettyBytesHelper } from '@/helper/utils'
-import { connectionTabShow } from '@/store/connections'
-import { connectionCardLines, proxyChainDirection } from '@/store/settings'
+import { getConnectionChains, getConnectionSmartBlock } from '@/helper'
+import { connectionFilter, connectionTabShow } from '@/store/connections'
+import { connectionCardLines, proxyChainDirection, showFullProxyChain } from '@/store/settings'
 import type { Connection } from '@/types'
 import {
   ArrowDownCircleIcon,
@@ -31,6 +26,7 @@ import {
 import { first, last } from 'lodash'
 import { defineComponent } from 'vue'
 import type { JSX } from 'vue/jsx-runtime'
+import HighlightText from '../common/HighlightText.vue'
 import ProxyName from '../proxies/ProxyName.vue'
 
 export default defineComponent<{
@@ -47,39 +43,70 @@ export default defineComponent<{
 
     return () => {
       const conn = props.conn
-      const metadata = conn.metadata
-      const componentMap: Record<CONNECTIONS_TABLE_ACCESSOR_KEY, JSX.Element> = {
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Host]: (
-          <span class="text-main w-80 grow truncate">{getHostFromConnection(conn)}</span>
-        ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Destination]: (
-          <span class="w-80 grow truncate break-all">{getDestinationFromConnection(conn)}</span>
-        ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.RemoteAddress]: (
-          <span class="w-80 grow truncate break-all">{conn.metadata.remoteDestination || '-'}</span>
-        ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.SourceIP]: (
-          <span class="w-40 grow truncate break-all">{getIPLabelFromMap(metadata.sourceIP)}</span>
-        ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.SourcePort]: (
-          <span class="w-20 grow truncate break-all">{metadata.sourcePort}</span>
-        ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.SniffHost]: (
-          <span class="w-80 grow truncate break-all">{metadata.sniffHost || '-'}</span>
-        ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Type]: (
-          <span class="w-60 grow truncate break-all">{getNetworkTypeFromConnection(conn)}</span>
-        ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Rule]: (
-          <span class="w-80 grow truncate break-all">
-            {conn.rule}
-            {conn.rulePayload && <>: {conn.rulePayload}</>}
+      const chains = getConnectionChains(conn)
+      const displayOptions = {
+        mode: 'card' as const,
+        proxyChainDirection: proxyChainDirection.value,
+        showFullProxyChain: showFullProxyChain.value,
+      }
+      const highlightedText = (key: CONNECTIONS_TABLE_ACCESSOR_KEY) => (
+        <HighlightText
+          text={getConnectionDisplayValue(conn, key, displayOptions)}
+          filter={connectionFilter.value}
+        />
+      )
+      const componentMap: Record<CONNECTIONS_TABLE_ACCESSOR_KEY, () => JSX.Element> = {
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Host]: () => (
+          <span class="text-main w-80 grow truncate">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Host)}
           </span>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Process]: (
-          <span class="w-60 grow truncate break-all">{getProcessFromConnection(conn)}</span>
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Destination]: () => (
+          <span class="w-80 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Destination)}
+          </span>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Chains]: (
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.RemoteAddress]: () => (
+          <span class="w-80 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.RemoteAddress)}
+          </span>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.GeoIP]: () => (
+          <span class="w-80 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.GeoIP)}
+          </span>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.SourceIP]: () => (
+          <span class="w-40 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.SourceIP)}
+          </span>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.SourcePort]: () => (
+          <span class="w-20 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.SourcePort)}
+          </span>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.SniffHost]: () => (
+          <span class="w-80 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.SniffHost)}
+          </span>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Type]: () => (
+          <span class="w-60 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Type)}
+          </span>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Rule]: () => (
+          <span class="w-80 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Rule)}
+          </span>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Process]: () => (
+          <span class="w-60 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Process)}
+          </span>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Chains]: () => (
           <span
             class={[
               'flex w-80 grow items-center gap-1 truncate break-all',
@@ -87,52 +114,85 @@ export default defineComponent<{
                 'flex-row-reverse justify-end',
             ]}
           >
-            {<ProxyName name={last(conn.chains)!} />}
-            {last(conn.chains) !== first(conn.chains) && (
+            {
+              <ProxyName
+                name={last(chains)!}
+                filter={connectionFilter.value}
+              />
+            }
+            {last(chains) !== first(chains) && (
               <>
                 <ArrowRightCircleIcon class="h-4 w-4 shrink-0"></ArrowRightCircleIcon>
-                {<ProxyName name={first(conn.chains)!} />}
+                {
+                  <ProxyName
+                    name={first(chains)!}
+                    filter={connectionFilter.value}
+                  />
+                }
               </>
             )}
           </span>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Outbound]: (
-          <span class="w-60 grow truncate break-all">{conn.chains[0]}</span>
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Outbound]: () => (
+          <span class="w-60 grow truncate break-all">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Outbound)}
+          </span>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Download]: (
-          <div class="flex items-center gap-1 text-xs whitespace-nowrap">
-            {prettyBytesHelper(conn.download)}
-            <ArrowDownIcon class="text-success h-3 w-3" />
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Download]: () => (
+          <div class="flex items-center text-xs whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Download)}
+            <ArrowDownIcon class="text-success ml-1 h-3 w-3" />
           </div>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Upload]: (
-          <div class="flex items-center gap-1 text-xs whitespace-nowrap">
-            {prettyBytesHelper(conn.upload)}
-            <ArrowUpIcon class="text-info h-3 w-3" />
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Upload]: () => (
+          <div class="flex items-center text-xs whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Upload)}
+            <ArrowUpIcon class="text-info ml-1 h-3 w-3" />
           </div>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.DlSpeed]: (
-          <div class="flex items-center gap-1 text-xs whitespace-nowrap">
-            {prettyBytesHelper(conn.downloadSpeed)}/s
-            <ArrowDownCircleIcon class="text-success h-4 w-4" />
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.DlSpeed]: () => (
+          <div class="flex items-center text-xs whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.DlSpeed)}
+            <ArrowDownCircleIcon class="text-success ml-1 h-4 w-4" />
           </div>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.UlSpeed]: (
-          <div class="flex items-center gap-1 text-xs whitespace-nowrap">
-            {prettyBytesHelper(conn.uploadSpeed)}/s
-            <ArrowUpCircleIcon class="text-info h-4 w-4" />
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.UlSpeed]: () => (
+          <div class="flex items-center text-xs whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.UlSpeed)}
+            <ArrowUpCircleIcon class="text-info ml-1 h-4 w-4" />
           </div>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime]: (
-          <div class="gap-1 whitespace-nowrap">{fromNow(conn.start)}</div>
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime]: () => (
+          <div class="whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.ConnectTime)}
+          </div>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.DestinationType]: (
-          <div class="gap-1 whitespace-nowrap">{getDestinationTypeFromConnection(conn)}</div>
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.DestinationType]: () => (
+          <div class="whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.DestinationType)}
+          </div>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.InboundUser]: (
-          <div class="gap-1 whitespace-nowrap">{getInboundUserFromConnection(conn)}</div>
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.InboundUser]: () => (
+          <div class="whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.InboundUser)}
+          </div>
         ),
-        [CONNECTIONS_TABLE_ACCESSOR_KEY.Close]: (() => {
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Protocol]: () => (
+          <div class="whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.Protocol)}
+          </div>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.OutboundType]: () => (
+          <div class="whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.OutboundType)}
+          </div>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.FromOutbound]: () => (
+          <div class="whitespace-nowrap">
+            {highlightedText(CONNECTIONS_TABLE_ACCESSOR_KEY.FromOutbound)}
+          </div>
+        ),
+        [CONNECTIONS_TABLE_ACCESSOR_KEY.Close]: () => {
           const closeButton = (
             <button
               class="btn btn-circle btn-xs"
@@ -145,7 +205,7 @@ export default defineComponent<{
             </button>
           )
 
-          if (metadata.smartBlock === 'normal') {
+          if (getConnectionSmartBlock(conn) === 'normal') {
             const degradeButton = (
               <button
                 class="btn btn-circle btn-xs"
@@ -165,11 +225,13 @@ export default defineComponent<{
             )
           }
           return closeButton
-        })(),
+        },
       }
       return (
         <div
-          class={['scroller-item flex cursor-pointer flex-col gap-1 px-3 py-2']}
+          class={[
+            'scroller-item text-base-content/65 flex cursor-pointer flex-col gap-1 px-3 py-2',
+          ]}
           onClick={() => handlerInfo(conn)}
         >
           {connectionCardLines.value.map((line) => (
@@ -181,7 +243,7 @@ export default defineComponent<{
                     connectionTabShow.value !== CONNECTION_TAB_TYPE.CLOSED,
                 )
                 .map((key) => {
-                  return componentMap[key]
+                  return componentMap[key]()
                 })}
             </div>
           ))}

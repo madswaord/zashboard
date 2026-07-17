@@ -65,10 +65,11 @@ export const getIPLabelFromMap = (ip: string) => {
   if (ipLabelCache.has(ip)) {
     return ipLabelCache.get(ip)!
   }
-  const addr = ipaddr.parse(ip)
-  const isIPv6 = addr.kind() === 'ipv6'
 
-  if (isIPv6) {
+  const isValidIP = ipaddr.isValid(ip)
+  const addr = isValidIP ? ipaddr.parse(ip) : null
+
+  if (addr?.kind() === 'ipv6') {
     for (const [key, label] of sourceIPMap.entries()) {
       if (ip.endsWith(key)) {
         return cacheResult(ip, label)
@@ -86,9 +87,11 @@ export const getIPLabelFromMap = (ip: string) => {
     }
   }
 
-  for (const { cidr, label } of sourceIPCIDRList) {
-    if (addr.match(cidr)) {
-      return cacheResult(ip, label)
+  if (addr) {
+    for (const { cidr, label } of sourceIPCIDRList) {
+      if (addr.match(cidr)) {
+        return cacheResult(ip, label)
+      }
     }
   }
 
