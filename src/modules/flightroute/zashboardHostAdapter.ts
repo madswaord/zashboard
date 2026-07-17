@@ -11,11 +11,11 @@ import type { FlightRouteHostAdapter, TrafficConnectionLike } from 'flightroute/
 import { fetchGeoPoint } from './geo'
 import { getFinalOutboundName, resolveProxyHopGeoPoint } from './proxyRoute'
 
-const EGRESS_CACHE_TTL = 1000 * 60 * 30
-const EGRESS_ERROR_CACHE_TTL = 1000 * 60
+const FALLBACK_EGRESS_CACHE_TTL = 1000 * 60 * 30
+const FALLBACK_EGRESS_ERROR_CACHE_TTL = 1000 * 60
 const EGRESS_REQUEST_TIMEOUT = 8000
-let egressCache: { ip: string | null; expiresAt: number } | null = null
-let pendingEgress: Promise<string | null> | null = null
+let fallbackEgressCache: { ip: string | null; expiresAt: number } | null = null
+let pendingFallbackEgress: Promise<string | null> | null = null
 let cachedConnectionSource: Connection[] | null = null
 let cachedSortedConnections: Connection[] = []
 
@@ -38,43 +38,37 @@ const fetchFallbackEgressIp = async () => {
 }
 
 const fetchPrimaryEgressIp = async () => {
-  const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), EGRESS_REQUEST_TIMEOUT)
-
   try {
-    const response = await getIPFromIpipnetAPI(controller.signal)
+    const response = await getIPFromIpipnetAPI()
     return response?.data?.ip || null
   } catch {
     return null
-  } finally {
-    window.clearTimeout(timeoutId)
   }
 }
 
 const resolveEgressIp = async () => {
-  if (egressCache && egressCache.expiresAt > Date.now()) {
-    return egressCache.ip
+  const primaryIp = await fetchPrimaryEgressIp()
+  if (primaryIp) return primaryIp
+
+  if (fallbackEgressCache && fallbackEgressCache.expiresAt > Date.now()) {
+    return fallbackEgressCache.ip
   }
 
-  if (pendingEgress) {
-    return pendingEgress
-  }
+  if (pendingFallbackEgress) return pendingFallbackEgress
 
-  pendingEgress = (async () => {
-    return (await fetchPrimaryEgressIp()) || (await fetchFallbackEgressIp())
-  })()
+  pendingFallbackEgress = fetchFallbackEgressIp()
     .then((ip) => {
-      egressCache = {
+      fallbackEgressCache = {
         ip,
-        expiresAt: Date.now() + (ip ? EGRESS_CACHE_TTL : EGRESS_ERROR_CACHE_TTL),
+        expiresAt: Date.now() + (ip ? FALLBACK_EGRESS_CACHE_TTL : FALLBACK_EGRESS_ERROR_CACHE_TTL),
       }
       return ip
     })
     .finally(() => {
-      pendingEgress = null
+      pendingFallbackEgress = null
     })
 
-  return pendingEgress
+  return pendingFallbackEgress
 }
 
 const toTrafficConnection = (connection: Connection): TrafficConnectionLike => {

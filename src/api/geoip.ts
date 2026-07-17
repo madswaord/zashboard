@@ -21,15 +21,58 @@ export interface IPInfo {
 }
 
 // china
-export const getIPFromIpipnetAPI = async (signal?: AbortSignal) => {
-  const response = await fetch('https://myip.ipip.net/json?t=' + Date.now(), { signal })
-
-  return (await response.json()) as {
-    data: {
-      ip: string
-      location: string[]
-    }
+export interface IpipNetResponse {
+  data: {
+    ip: string
+    location: string[]
   }
+}
+
+const IPIP_NET_CACHE_TTL = 30 * 60 * 1000
+const IPIP_NET_ERROR_BACKOFF = 60 * 1000
+const IPIP_NET_REQUEST_TIMEOUT = 8000
+let ipipNetCache: { data: IpipNetResponse; expiresAt: number } | null = null
+let ipipNetPending: Promise<IpipNetResponse> | null = null
+let ipipNetErrorUntil = 0
+
+export const getIPFromIpipnetAPI = async (force = false): Promise<IpipNetResponse> => {
+  if (!force && ipipNetCache && ipipNetCache.expiresAt > Date.now()) {
+    return ipipNetCache.data
+  }
+  if (!force && ipipNetErrorUntil > Date.now()) {
+    throw new Error('ipip.net is temporarily unavailable')
+  }
+
+  if (ipipNetPending) return ipipNetPending
+
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), IPIP_NET_REQUEST_TIMEOUT)
+
+  ipipNetPending = fetch('https://myip.ipip.net/json?t=' + Date.now(), {
+    signal: controller.signal,
+  })
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`ipip.net responded with ${response.status}`)
+      const data = (await response.json()) as IpipNetResponse
+      if (!data.data?.ip) throw new Error('ipip.net returned an invalid response')
+
+      ipipNetCache = {
+        data,
+        expiresAt: Date.now() + IPIP_NET_CACHE_TTL,
+      }
+      ipipNetErrorUntil = 0
+      return data
+    })
+    .catch((error) => {
+      ipipNetErrorUntil = Date.now() + IPIP_NET_ERROR_BACKOFF
+      throw error
+    })
+    .finally(() => {
+      window.clearTimeout(timeoutId)
+      ipipNetPending = null
+    })
+
+  return ipipNetPending
 }
 
 // global

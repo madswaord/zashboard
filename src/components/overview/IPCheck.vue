@@ -107,7 +107,7 @@ const getIPs = () => {
         ...FAILED_IP_INFO,
       }
     })
-  getIPFromIpipnetAPI()
+  getIPFromIpipnetAPI(true)
     .then((res) => {
       ipForChina.value = {
         ipWithPrivacy: [res.data.location.join(' '), res.data.ip],
