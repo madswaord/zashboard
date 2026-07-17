@@ -21,8 +21,8 @@ export interface IPInfo {
 }
 
 // china
-export const getIPFromIpipnetAPI = async () => {
-  const response = await fetch('https://myip.ipip.net/json?t=' + Date.now())
+export const getIPFromIpipnetAPI = async (signal?: AbortSignal) => {
+  const response = await fetch('https://myip.ipip.net/json?t=' + Date.now(), { signal })
 
   return (await response.json()) as {
     data: {

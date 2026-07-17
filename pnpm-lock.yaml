@@ -62,8 +62,8 @@ importers:
         specifier: ^6.1.0
         version: 6.1.0
       flightroute:
-        specifier: https://github.com/madswaord/FlightRoute.git#fe6dc1c
-        version: https://codeload.github.com/madswaord/FlightRoute/tar.gz/fe6dc1c
+        specifier: https://github.com/madswaord/FlightRoute.git#8353729
+        version: https://codeload.github.com/madswaord/FlightRoute/tar.gz/8353729
       ipaddr.js:
         specifier: ^2.4.0
         version: 2.4.0
@@ -3331,8 +3331,8 @@ packages:
       }
     engines: { node: '>=16' }
 
-  flightroute@https://codeload.github.com/madswaord/FlightRoute/tar.gz/fe6dc1c:
-    resolution: { tarball: https://codeload.github.com/madswaord/FlightRoute/tar.gz/fe6dc1c }
+  flightroute@https://codeload.github.com/madswaord/FlightRoute/tar.gz/8353729:
+    resolution: { tarball: https://codeload.github.com/madswaord/FlightRoute/tar.gz/8353729 }
 
   flatted@3.4.2:
     resolution:
@@ -7776,7 +7776,7 @@ snapshots:
       flatted: 3.4.2
       keyv: 4.5.4
 
-  flightroute@https://codeload.github.com/madswaord/FlightRoute/tar.gz/fe6dc1c: {}
+  flightroute@https://codeload.github.com/madswaord/FlightRoute/tar.gz/8353729: {}
 
   flatted@3.4.2: {}
 

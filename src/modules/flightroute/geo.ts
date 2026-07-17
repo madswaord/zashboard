@@ -69,6 +69,7 @@ const GEO_ERROR_BACKOFF = 1000 * 60
 const REQUEST_TIMEOUT = 8000
 const pendingMap = new Map<string, Promise<GeoPoint | null>>()
 const dnsCache = new Map<string, { value: string | null; expiresAt: number }>()
+const dnsPendingMap = new Map<string, Promise<string | null>>()
 const negativeGeoCache = new Map<string, number>()
 
 const readCache = (key: string) => {
@@ -154,32 +155,37 @@ const resolveGeoTarget = async (value: string) => {
   if (cached && cached.expiresAt > Date.now()) return cached.value
   dnsCache.delete(hostname)
 
-  try {
-    let ip: string | null | undefined = null
-    for (const type of ['A', 'AAAA']) {
-      const response = await fetchProviderJSON<DnsResponse>(
+  const pending = dnsPendingMap.get(hostname)
+  if (pending) return pending
+
+  const lookup = Promise.allSettled(
+    ['A', 'AAAA'].map((type) =>
+      fetchProviderJSON<DnsResponse>(
         `https://dns.alidns.com/resolve?name=${encodeURIComponent(hostname)}&type=${type}`,
         'dns.alidns.com',
-      )
-      ip = response.Answer?.map((answer) => answer.data || '')
-        .map(normalizePublicIP)
-        .find(Boolean)
-      if (ip) break
-    }
+      ),
+    ),
+  )
+    .then((results) => {
+      const resolved =
+        results
+          .filter((result): result is PromiseFulfilledResult<DnsResponse> => {
+            return result.status === 'fulfilled'
+          })
+          .flatMap((result) => result.value.Answer || [])
+          .map((answer) => normalizePublicIP(answer.data || ''))
+          .find(Boolean) || null
 
-    const resolved = ip || null
-    dnsCache.set(hostname, {
-      value: resolved,
-      expiresAt: Date.now() + (resolved ? DNS_CACHE_TTL : DNS_NEGATIVE_CACHE_TTL),
+      dnsCache.set(hostname, {
+        value: resolved,
+        expiresAt: Date.now() + (resolved ? DNS_CACHE_TTL : DNS_NEGATIVE_CACHE_TTL),
+      })
+      return resolved
     })
-    return resolved
-  } catch {
-    dnsCache.set(hostname, {
-      value: null,
-      expiresAt: Date.now() + DNS_NEGATIVE_CACHE_TTL,
-    })
-    return null
-  }
+    .finally(() => dnsPendingMap.delete(hostname))
+
+  dnsPendingMap.set(hostname, lookup)
+  return lookup
 }
 
 const fromIpsb = async (ip: string): Promise<GeoPoint | null> => {
@@ -275,7 +281,7 @@ const fetchGeoPointInner = async (ip: string): Promise<GeoPoint | null> => {
       return await tryProviders(ip, [fromIPWhois, fromIPApiIs, fromIpsb])
     case IP_INFO_API.IPSB:
     default:
-      return await tryProviders(ip, [fromIPWhois, fromIPApiIs, fromIpsb])
+      return await tryProviders(ip, [fromIpsb, fromIPWhois, fromIPApiIs])
   }
 }
 

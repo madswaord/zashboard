@@ -13,7 +13,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
 
     steps:
@@ -28,11 +27,8 @@ jobs:
           tag_name="v$version"
           echo "tag_name=$tag_name" >> "$GITHUB_OUTPUT"
 
-          if gh release view "$tag_name" >/dev/null 2>&1; then
-            echo 'release_created=false' >> "$GITHUB_OUTPUT"
-          else
+          if ! gh release view "$tag_name" >/dev/null 2>&1; then
             gh release create "$tag_name" --target "$GITHUB_SHA" --title "$tag_name" --generate-notes
-            echo 'release_created=true' >> "$GITHUB_OUTPUT"
           fi
 
   build-and-deploy:
@@ -59,7 +55,7 @@ jobs:
         env:
           FONT: ${{ matrix.font.key }}
         run: |
-          pnpm i
+          pnpm install --frozen-lockfile
           pnpm run build
 
       - name: Deploy 🚀
@@ -73,7 +69,6 @@ jobs:
   release-dist:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ needs.release.outputs.release_created == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -94,7 +89,7 @@ jobs:
         env:
           FONT: ${{ matrix.font.key }}
         run: |
-          pnpm i
+          pnpm install --frozen-lockfile
           pnpm run build
           zip -r dist${{ matrix.font.suffix }}.zip dist
 
@@ -103,11 +98,11 @@ jobs:
         with:
           files: dist${{ matrix.font.suffix }}.zip
           tag_name: ${{ needs.release.outputs.tag_name }}
+          overwrite_files: true
 
   release-image:
     needs: release
     runs-on: ubuntu-latest
-    if: ${{ needs.release.outputs.release_created == 'true' }}
     steps:
       - uses: actions/checkout@v6
 

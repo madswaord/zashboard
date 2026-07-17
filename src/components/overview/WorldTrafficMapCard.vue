@@ -59,15 +59,15 @@
 </template>
 
 <script setup lang="ts">
-import { getConnectionDownload, getConnectionUpload, getDestinationFromConnection } from '@/helper'
 import { resolveZashboardSvgTrafficRoutes } from '@/modules/flightroute/core'
+import { getFlightRouteConnectionSnapshot } from '@/modules/flightroute/zashboardHostAdapter'
 import { activeConnections } from '@/store/connections'
 import { useElementSize, watchDebounced } from '@vueuse/core'
 import { EffectScatterChart, LinesChart, ScatterChart } from 'echarts/charts'
 import { GeoComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import type { SvgTrafficRoute } from 'flightroute/render'
+import { buildSvgTrafficRenderModel, type SvgTrafficRoute } from 'flightroute/render'
 import { computed, onMounted, onUnmounted, ref, shallowRef } from 'vue'
 
 echarts.use([
@@ -95,33 +95,22 @@ let refreshInFlight = false
 let refreshQueued = false
 let componentAlive = true
 
-const SVG_WIDTH = 960
-const SVG_CONTENT_RATIO = SVG_WIDTH / 462.94
+const SVG_CONTENT_RATIO = 960 / 462.94
 const MAX_CONNECTIONS = 100
 const FLOW_SIGNATURE_BUCKET = 1024 * 1024
 const SPEED_SIGNATURE_BUCKET = 64 * 1024
-type MapCoordinate = [number, number]
-
 const isCompact = computed(() => width.value > 0 && width.value < 560)
 const connectionCount = computed(() => activeConnections.value.length)
+const selectedConnections = computed(() => getFlightRouteConnectionSnapshot(MAX_CONNECTIONS))
 const connectionSignature = computed(() =>
-  activeConnections.value
+  selectedConnections.value
     .map((connection) => {
-      const flow = getConnectionDownload(connection) + getConnectionUpload(connection)
-      const speed = connection.downloadSpeed + connection.uploadSpeed
-      return `${connection.id}:${getDestinationFromConnection(connection)}:${Math.floor(flow / FLOW_SIGNATURE_BUCKET)}:${Math.floor(speed / SPEED_SIGNATURE_BUCKET)}`
+      const flow = connection.download + connection.upload
+      const speed = (connection.downloadSpeed || 0) + (connection.uploadSpeed || 0)
+      return `${connection.id}:${connection.destinationIP}:${Math.floor(flow / FLOW_SIGNATURE_BUCKET)}:${Math.floor(speed / SPEED_SIGNATURE_BUCKET)}`
     })
     .join('|'),
 )
-
-const getRouteFlow = (route: SvgTrafficRoute) => {
-  const hasSpeed =
-    route.connection.downloadSpeed !== undefined || route.connection.uploadSpeed !== undefined
-  if (hasSpeed) {
-    return (route.connection.downloadSpeed || 0) + (route.connection.uploadSpeed || 0)
-  }
-  return route.connection.download + route.connection.upload
-}
 
 const ensureMap = () => {
   if (!mapReady) {
@@ -172,118 +161,39 @@ const getEffectScatterSize = (value: number[]) => {
 const applyChartOptions = (routes: SvgTrafficRoute[]) => {
   if (!mapRegistered) return
 
-  const scatterMap = new Map<
-    string,
-    { name: string; value: [number, number, number, number, number] }
-  >()
-  const lines: Array<{
-    coords: MapCoordinate[]
-    fromName: string
-    toName: string
-    host: string
-    lineStyle: { curveness: number; width: number; opacity: number }
-  }> = []
+  const renderModel = buildSvgTrafficRenderModel(routes)
+  const points = renderModel.points.map((point) => ({
+    name: point.labels.join(' / '),
+    labels: point.labels,
+    value: [point.coordinate.x, point.coordinate.y, point.count, point.peakWeight, point.flow],
+  }))
+  const lines = renderModel.lines.map((line, index) => {
+    const [from, to] = line.coordinates
+    const dx = to.x - from.x
+    const dy = to.y - from.y
+    const distance = Math.hypot(dx, dy)
+    const curveDirection = index % 2 === 0 ? 1 : -1
+    const countWeight = Math.min(0.45, Math.log2(line.count + 1) * 0.12)
 
-  const getLineSegments = (
-    from: { x: number; y: number },
-    to: { x: number; y: number },
-  ): MapCoordinate[] => {
-    const deltaX = to.x - from.x
-    if (Math.abs(deltaX) <= SVG_WIDTH / 2) {
-      return [
+    return {
+      coords: [
         [from.x, from.y],
         [to.x, to.y],
-      ]
+      ],
+      fromName: line.fromLabels.join(' / '),
+      toName: line.toLabels.join(' / '),
+      host: line.hosts.join(', '),
+      count: line.count,
+      lineStyle: {
+        curveness: curveDirection * Math.min(0.28, Math.max(0.08, Math.abs(dx) / 4800)),
+        width: Math.min(2.2, Math.max(0.65, distance / 1500 + line.peakWeight * 0.8 + countWeight)),
+        opacity: Math.min(
+          0.68,
+          Math.max(0.28, distance / 1800 + line.peakWeight * 0.18 + countWeight * 0.25),
+        ),
+      },
     }
-
-    const crossesRightEdge = deltaX < 0
-    const adjustedToX = crossesRightEdge ? to.x + SVG_WIDTH : to.x - SVG_WIDTH
-    const edgeX = crossesRightEdge ? SVG_WIDTH : 0
-    const ratio = (edgeX - from.x) / (adjustedToX - from.x)
-    const edgeY = from.y + (to.y - from.y) * ratio
-
-    return crossesRightEdge
-      ? [
-          [from.x, from.y],
-          [SVG_WIDTH, edgeY],
-          [0, edgeY],
-          [to.x, to.y],
-        ]
-      : [
-          [from.x, from.y],
-          [0, edgeY],
-          [SVG_WIDTH, edgeY],
-          [to.x, to.y],
-        ]
-  }
-
-  const addPoint = (name: string, x: number, y: number, weight: number, flow: number) => {
-    const key = `${name}-${x}-${y}`
-    const current = scatterMap.get(key)
-    if (current) {
-      current.value[2] += 1
-      current.value[3] = Math.max(current.value[3], weight)
-      current.value[4] += flow
-      return
-    }
-    scatterMap.set(key, { name, value: [x, y, 1, weight, flow] })
-  }
-
-  const addLine = (
-    route: SvgTrafficRoute,
-    from: { label: string; svg: { x: number; y: number } },
-    to: { label: string; svg: { x: number; y: number } },
-    segmentIndex: number,
-  ) => {
-    const flow = getRouteFlow(route)
-    const weight = Math.min(1.4, Math.max(0.18, flow / (2 * 1024 * 1024)))
-    const wrappedCoords = getLineSegments(from.svg, to.svg)
-    const curveDirection = segmentIndex % 2 === 0 ? 1 : -1
-    const coordinatePairs: MapCoordinate[][] =
-      wrappedCoords.length === 2
-        ? [wrappedCoords]
-        : [wrappedCoords.slice(0, 2), wrappedCoords.slice(2, 4)]
-
-    for (const coords of coordinatePairs) {
-      const dx = coords[1][0] - coords[0][0]
-      const dy = coords[1][1] - coords[0][1]
-      const distance = Math.hypot(dx, dy)
-      const curveness = curveDirection * Math.min(0.28, Math.max(0.08, Math.abs(dx) / 4800))
-
-      lines.push({
-        coords,
-        fromName: from.label,
-        toName: to.label,
-        host: route.host,
-        lineStyle: {
-          curveness,
-          width: Math.min(1.8, Math.max(0.65, distance / 1500 + weight * 0.8)),
-          opacity: Math.min(0.62, Math.max(0.28, distance / 1800 + weight * 0.18)),
-        },
-      })
-    }
-  }
-
-  for (const route of routes) {
-    const flow = getRouteFlow(route)
-    const weight = Math.min(1.4, Math.max(0.18, flow / (2 * 1024 * 1024)))
-    addPoint(route.source.label, route.source.svg.x, route.source.svg.y, weight, flow)
-    addPoint(
-      route.destination.label,
-      route.destination.svg.x,
-      route.destination.svg.y,
-      weight,
-      flow,
-    )
-
-    if (route.proxy) {
-      addPoint(route.proxy.label, route.proxy.svg.x, route.proxy.svg.y, weight, flow)
-      addLine(route, route.source, route.proxy, 0)
-      addLine(route, route.proxy, route.destination, 1)
-    } else {
-      addLine(route, route.source, route.destination, 0)
-    }
-  }
+  })
 
   chart?.setOption(
     {
@@ -330,7 +240,7 @@ const applyChartOptions = (routes: SvgTrafficRoute[]) => {
           coordinateSystem: 'geo',
           symbolSize: (value: number[]) => getScatterSize(value),
           itemStyle: { color: '#f97316', opacity: 0.9 },
-          data: Array.from(scatterMap.values()),
+          data: points,
         },
         {
           type: 'effectScatter',
@@ -341,7 +251,7 @@ const applyChartOptions = (routes: SvgTrafficRoute[]) => {
           },
           symbolSize: (value: number[]) => getEffectScatterSize(value),
           itemStyle: { color: '#fb923c', opacity: 0.95 },
-          data: Array.from(scatterMap.values()).filter((item) => item.value[2] >= 2),
+          data: points.filter((item) => item.value[2] >= 2),
         },
       ],
     },

@@ -16,6 +16,8 @@ const EGRESS_ERROR_CACHE_TTL = 1000 * 60
 const EGRESS_REQUEST_TIMEOUT = 8000
 let egressCache: { ip: string | null; expiresAt: number } | null = null
 let pendingEgress: Promise<string | null> | null = null
+let cachedConnectionSource: Connection[] | null = null
+let cachedSortedConnections: Connection[] = []
 
 const fetchFallbackEgressIp = async () => {
   const controller = new AbortController()
@@ -35,6 +37,20 @@ const fetchFallbackEgressIp = async () => {
   }
 }
 
+const fetchPrimaryEgressIp = async () => {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), EGRESS_REQUEST_TIMEOUT)
+
+  try {
+    const response = await getIPFromIpipnetAPI(controller.signal)
+    return response?.data?.ip || null
+  } catch {
+    return null
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
 const resolveEgressIp = async () => {
   if (egressCache && egressCache.expiresAt > Date.now()) {
     return egressCache.ip
@@ -45,12 +61,7 @@ const resolveEgressIp = async () => {
   }
 
   pendingEgress = (async () => {
-    try {
-      const response = await getIPFromIpipnetAPI()
-      return response?.data?.ip || (await fetchFallbackEgressIp())
-    } catch {
-      return await fetchFallbackEgressIp()
-    }
+    return (await fetchPrimaryEgressIp()) || (await fetchFallbackEgressIp())
   })()
     .then((ip) => {
       egressCache = {
@@ -85,14 +96,23 @@ const toRawConnection = (connection: TrafficConnectionLike) => {
   return connection.raw as Connection | undefined
 }
 
+export const getFlightRouteConnectionSnapshot = (limit: number) => {
+  const source = activeConnections.value
+  if (source !== cachedConnectionSource) {
+    cachedConnectionSource = source
+    cachedSortedConnections = [...source].sort(
+      (a, b) => b.downloadSpeed + b.uploadSpeed - (a.downloadSpeed + a.uploadSpeed),
+    )
+  }
+
+  return cachedSortedConnections.slice(0, limit).map(toTrafficConnection)
+}
+
 export const zashboardFlightRouteHost: FlightRouteHostAdapter = {
   getEgressIp: resolveEgressIp,
   fetchGeoPoint,
   async listConnections(limit) {
-    return [...activeConnections.value]
-      .sort((a, b) => b.downloadSpeed + b.uploadSpeed - (a.downloadSpeed + a.uploadSpeed))
-      .slice(0, limit)
-      .map(toTrafficConnection)
+    return getFlightRouteConnectionSnapshot(limit)
   },
   async resolveProxyHopGeoPoint(connection) {
     const rawConnection = toRawConnection(connection)
