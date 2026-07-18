@@ -24,13 +24,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: pnpm/action-setup@v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-
       - name: Fetch upstream
         run: |
           git config user.name github-actions[bot]
@@ -50,6 +43,18 @@ jobs:
       - name: Merge upstream
         if: steps.upstream.outputs.changed == 'true'
         run: git merge --no-ff --no-commit upstream/main
+
+      - name: Set up pnpm
+        if: steps.upstream.outputs.changed == 'true'
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        if: steps.upstream.outputs.changed == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Verify upstream version
         if: steps.upstream.outputs.changed == 'true'
