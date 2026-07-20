@@ -144,6 +144,26 @@ const en = {
   usbipConfigurations: 'Configurations',
   usbipInterfaceN: 'Interface {n}',
 
+  // OpenVPN
+  openvpn: 'OpenVPN',
+  ovpnNoEndpoints: 'No OpenVPN endpoints',
+  ovpnAuthentication: 'Authentication',
+  ovpnServer: 'Server',
+  ovpnNetwork: 'Network',
+  ovpnCipher: 'Cipher',
+  ovpnIPv4: 'IPv4',
+  ovpnIPv6: 'IPv6',
+  ovpnDNS: 'DNS',
+  ovpnMTU: 'MTU',
+  ovpnConnected: 'Connected',
+  ovpnUsername: 'Username',
+  ovpnPassword: 'Password',
+  ovpnResponse: 'Response',
+  ovpnOpenAuthURL: 'Open auth URL',
+  ovpnSubmit: 'Submit',
+  ovpnCancel: 'Cancel',
+  ovpnVerifying: 'Verifying',
+
   // Shared labels and actions
   protocol: 'Protocol',
   host: 'Host',

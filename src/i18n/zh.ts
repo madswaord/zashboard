@@ -145,6 +145,26 @@ const zh: LANG_MESSAGE = {
   usbipConfigurations: '配置数',
   usbipInterfaceN: '接口 {n}',
 
+  // OpenVPN
+  openvpn: 'OpenVPN',
+  ovpnNoEndpoints: '没有 OpenVPN 端点',
+  ovpnAuthentication: '认证',
+  ovpnServer: '服务器',
+  ovpnNetwork: '网络',
+  ovpnCipher: '加密算法',
+  ovpnIPv4: 'IPv4',
+  ovpnIPv6: 'IPv6',
+  ovpnDNS: 'DNS',
+  ovpnMTU: 'MTU',
+  ovpnConnected: '已连接',
+  ovpnUsername: '用户名',
+  ovpnPassword: '密码',
+  ovpnResponse: '响应',
+  ovpnOpenAuthURL: '打开认证链接',
+  ovpnSubmit: '提交',
+  ovpnCancel: '取消',
+  ovpnVerifying: '验证中',
+
   // Shared labels and actions
   protocol: '协议',
   host: '主机',

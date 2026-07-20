@@ -145,6 +145,26 @@ const zhTW: LANG_MESSAGE = {
   usbipConfigurations: '組態數',
   usbipInterfaceN: '介面 {n}',
 
+  // OpenVPN
+  openvpn: 'OpenVPN',
+  ovpnNoEndpoints: '沒有 OpenVPN 端點',
+  ovpnAuthentication: '認證',
+  ovpnServer: '伺服器',
+  ovpnNetwork: '網路',
+  ovpnCipher: '加密演算法',
+  ovpnIPv4: 'IPv4',
+  ovpnIPv6: 'IPv6',
+  ovpnDNS: 'DNS',
+  ovpnMTU: 'MTU',
+  ovpnConnected: '已連線',
+  ovpnUsername: '使用者名稱',
+  ovpnPassword: '密碼',
+  ovpnResponse: '回應',
+  ovpnOpenAuthURL: '開啟認證連結',
+  ovpnSubmit: '提交',
+  ovpnCancel: '取消',
+  ovpnVerifying: '驗證中',
+
   // Shared labels and actions
   protocol: '協議',
   host: '主機',

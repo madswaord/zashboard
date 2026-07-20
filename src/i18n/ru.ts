@@ -146,6 +146,26 @@ const ru: LANG_MESSAGE = {
   usbipConfigurations: 'Конфигурации',
   usbipInterfaceN: 'Интерфейс {n}',
 
+  // OpenVPN
+  openvpn: 'OpenVPN',
+  ovpnNoEndpoints: 'Нет конечных точек OpenVPN',
+  ovpnAuthentication: 'Аутентификация',
+  ovpnServer: 'Сервер',
+  ovpnNetwork: 'Сеть',
+  ovpnCipher: 'Шифр',
+  ovpnIPv4: 'IPv4',
+  ovpnIPv6: 'IPv6',
+  ovpnDNS: 'DNS',
+  ovpnMTU: 'MTU',
+  ovpnConnected: 'Подключено',
+  ovpnUsername: 'Имя пользователя',
+  ovpnPassword: 'Пароль',
+  ovpnResponse: 'Ответ',
+  ovpnOpenAuthURL: 'Открыть ссылку аутентификации',
+  ovpnSubmit: 'Отправить',
+  ovpnCancel: 'Отмена',
+  ovpnVerifying: 'Проверка',
+
   // Shared labels and actions
   protocol: 'Протокол',
   host: 'Хост',
