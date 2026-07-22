@@ -435,6 +435,8 @@ const zhTW: LANG_MESSAGE = {
   syncSettingsSuccess: '設定同步成功',
   syncSettingsConfirm: '後端儲存的設定將覆蓋以下本地設定:\n\n{keys}\n\n是否套用?',
   importSettingsConfirm: '匯入的設定將覆蓋以下本地設定:\n\n{keys}\n\n是否套用?',
+  dontAskAgainAlwaysApply: '不再提示，以後自動套用',
+  confirmBeforeOverride: '覆蓋本地設定前確認',
   deleteUploadedSettingsSuccess: '已上傳設定刪除成功',
   deleteUploadedSettingsConfirm: '確定要刪除後端上已上傳的設定嗎？此操作無法復原。',
   upgradeSuccess: '升級成功',
