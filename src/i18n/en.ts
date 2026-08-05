@@ -15,7 +15,7 @@ const en = {
   backendType: 'Backend Type',
   clashApi: 'Clash API',
   singboxApi: 'sing-box API',
-  singboxConnectionFailed: 'Failed to connect to the sing-box native API',
+  singboxConnectionFailed: 'Failed to connect to the sing-box API',
   skip: 'Skip',
   // Tools page
   networkQuality: 'Network Quality',
@@ -50,7 +50,6 @@ const en = {
   online: 'Online',
   offline: 'Offline',
   peers: 'Peers',
-  noEndpoints: 'No Tailscale endpoints',
   backendState: 'State',
   statusLabel: 'Status',
   thisDevice: 'This device',
@@ -106,7 +105,6 @@ const en = {
 
   // USB/IP
   usbip: 'USB/IP',
-  usbipNoServer: 'No usbip-server found',
   usbipServerTagged: 'USB/IP: {tag}',
   usbipDevices: 'Devices',
   usbipConnectDevice: 'Connect device',
@@ -146,7 +144,6 @@ const en = {
 
   // OpenVPN
   openvpn: 'OpenVPN',
-  ovpnNoEndpoints: 'No OpenVPN endpoints',
   ovpnAuthentication: 'Authentication',
   ovpnServer: 'Server',
   ovpnNetwork: 'Network',
@@ -428,7 +425,7 @@ const en = {
   pressAnyKey: 'Press a key',
   displayAllFeatures: 'Show all features',
   displayAllFeaturesTip:
-    "Show all features, including those not supported by the official sing-box version. If you're using a forked version of sing-box that supports some of these features, you can try enabling them.",
+    "Show all features, including those not supported by the official build of the current core (sing-box / honk). If you're using a fork that supports some of these features, you can try enabling them.",
   blurIntensity: 'Blur intensity',
   scrollAnimationEffect: 'Scroll animation effect',
 

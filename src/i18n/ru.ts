@@ -17,7 +17,7 @@ const ru: LANG_MESSAGE = {
   backendType: 'Тип бэкенда',
   clashApi: 'Clash API',
   singboxApi: 'sing-box API',
-  singboxConnectionFailed: 'Не удалось подключиться к нативному API sing-box',
+  singboxConnectionFailed: 'Не удалось подключиться к API sing-box',
   skip: 'Пропустить',
   // Tools
   networkQuality: 'Качество сети',
@@ -52,7 +52,6 @@ const ru: LANG_MESSAGE = {
   online: 'В сети',
   offline: 'Не в сети',
   peers: 'Узлы',
-  noEndpoints: 'Нет конечных точек Tailscale',
   backendState: 'Состояние',
   statusLabel: 'Состояние',
   thisDevice: 'Это устройство',
@@ -108,7 +107,6 @@ const ru: LANG_MESSAGE = {
 
   // USB/IP
   usbip: 'USB/IP',
-  usbipNoServer: 'usbip-server не найден',
   usbipServerTagged: 'USB/IP: {tag}',
   usbipDevices: 'Устройства',
   usbipConnectDevice: 'Подключить устройство',
@@ -148,7 +146,6 @@ const ru: LANG_MESSAGE = {
 
   // OpenVPN
   openvpn: 'OpenVPN',
-  ovpnNoEndpoints: 'Нет конечных точек OpenVPN',
   ovpnAuthentication: 'Аутентификация',
   ovpnServer: 'Сервер',
   ovpnNetwork: 'Сеть',
@@ -430,7 +427,7 @@ const ru: LANG_MESSAGE = {
   pressAnyKey: 'Нажмите клавишу',
   displayAllFeatures: 'Показать все функции',
   displayAllFeaturesTip:
-    'Показать все функции, включая те, которые не поддерживаются официальной версией sing-box. Если вы используете форк sing-box, поддерживающий некоторые из этих функций, вы можете попробовать их включить.',
+    'Показать все функции, включая те, которые не поддерживаются официальной сборкой текущего ядра (sing-box / honk). Если вы используете форк, поддерживающий некоторые из этих функций, вы можете попробовать их включить.',
   blurIntensity: 'Интенсивность размытия',
   scrollAnimationEffect: 'Эффект анимации прокрутки',
 

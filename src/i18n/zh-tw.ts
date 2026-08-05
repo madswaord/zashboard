@@ -17,7 +17,7 @@ const zhTW: LANG_MESSAGE = {
   backendType: '後端類型',
   clashApi: 'Clash API',
   singboxApi: 'sing-box API',
-  singboxConnectionFailed: '無法連線 sing-box 原生 API',
+  singboxConnectionFailed: '無法連線 sing-box API',
   skip: '跳過',
   // 工具頁
   networkQuality: '網路品質',
@@ -52,7 +52,6 @@ const zhTW: LANG_MESSAGE = {
   online: '線上',
   offline: '離線',
   peers: '節點',
-  noEndpoints: '沒有 Tailscale 端點',
   backendState: '狀態',
   statusLabel: '狀態',
   thisDevice: '本裝置',
@@ -108,7 +107,6 @@ const zhTW: LANG_MESSAGE = {
 
   // USB/IP
   usbip: 'USB/IP',
-  usbipNoServer: '未找到 usbip-server',
   usbipServerTagged: 'USB/IP：{tag}',
   usbipDevices: '裝置',
   usbipConnectDevice: '連接裝置',
@@ -147,7 +145,6 @@ const zhTW: LANG_MESSAGE = {
 
   // OpenVPN
   openvpn: 'OpenVPN',
-  ovpnNoEndpoints: '沒有 OpenVPN 端點',
   ovpnAuthentication: '認證',
   ovpnServer: '伺服器',
   ovpnNetwork: '網路',
@@ -422,7 +419,7 @@ const zhTW: LANG_MESSAGE = {
   pressAnyKey: '按下任意鍵',
   displayAllFeatures: '顯示所有功能',
   displayAllFeaturesTip:
-    '顯示所有功能，包括sing-box官方版本不支援的功能，如果您使用了fork版本的sing-box支援其中的某些功能，可以嘗試啟用',
+    '顯示所有功能，包括目前核心（sing-box / honk）官方版本不支援的功能，如果您使用的 fork 版本支援其中的某些功能，可以嘗試啟用',
   blurIntensity: '毛玻璃強度',
   scrollAnimationEffect: '滾動動畫效果',
 
