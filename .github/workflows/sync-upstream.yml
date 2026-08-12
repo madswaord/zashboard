@@ -36,13 +36,24 @@ jobs:
         run: |
           if git merge-base --is-ancestor upstream/main HEAD; then
             echo 'changed=false' >> "$GITHUB_OUTPUT"
+            echo 'Upstream has no new commits; sync is already current.'
           else
             echo 'changed=true' >> "$GITHUB_OUTPUT"
+            echo 'Upstream has new commits; starting verified sync.'
           fi
+
+      - name: No upstream updates
+        if: steps.upstream.outputs.changed == 'false'
+        run: echo 'Nothing to sync. Finishing successfully.'
 
       - name: Merge upstream
         if: steps.upstream.outputs.changed == 'true'
-        run: git merge --no-ff --no-commit upstream/main
+        run: |
+          if ! git merge --no-ff --no-commit upstream/main; then
+            echo '::error::Upstream updates conflict with local integrations and require manual resolution.'
+            git status --short
+            exit 1
+          fi
 
       - name: Set up pnpm
         if: steps.upstream.outputs.changed == 'true'

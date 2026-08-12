@@ -27,7 +27,7 @@ import { usePaddingForViews } from '@/composables/paddingViews'
 import { FLIGHTROUTE_OVERVIEW_CARD } from '@/modules/flightroute/overview'
 import { overviewCardOrder } from '@/store/settings'
 import type { Component } from 'vue'
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 
 const { padding } = usePaddingForViews({
   offsetTop: 0,
@@ -43,6 +43,7 @@ const cardComponents: Record<string, Component> = {
   ProviderTrafficOverview,
   TopologyCharts,
   [FLIGHTROUTE_OVERVIEW_CARD]: WorldTrafficMapCard,
+  EarthGlobeCard: defineAsyncComponent(() => import('@/components/overview/EarthGlobeCard.vue')),
   ConnectionHistory,
   RuleHitCountCard,
 }

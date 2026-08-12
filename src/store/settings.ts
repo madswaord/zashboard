@@ -13,6 +13,7 @@ import {
   IP_INFO_API,
   IS_APPLE_DEVICE,
   LANG,
+  LIST_DISPLAY_STYLE,
   OVERVIEW_CARD,
   PROXY_CARD_SIZE,
   PROXY_CHAIN_DIRECTION,
@@ -194,6 +195,10 @@ const defaultOverviewCardOrder: OverviewCardItem[] = [
     visible: true,
   },
   {
+    card: OVERVIEW_CARD.EarthGlobeCard,
+    visible: true,
+  },
+  {
     card: OVERVIEW_CARD.TopologyCharts,
     visible: true,
   },
@@ -216,18 +221,29 @@ export const overviewCardOrder = useStorage<OverviewCardItem[]>(
   defaultOverviewCardOrder,
 )
 
-let normalizedOverviewCardOrder = normalizeOverviewCardOrder(overviewCardOrder.value)
+const normalizedOverviewCardOrder = normalizeOverviewCardOrder(overviewCardOrder.value)
 
 const allCardTypes = Object.values(OVERVIEW_CARD) as OverviewCardKey[]
 const existingCardTypes = new Set(normalizedOverviewCardOrder.map((item) => item.card))
 const missingCards = allCardTypes.filter((card) => !existingCardTypes.has(card))
 
 if (missingCards.length > 0) {
-  const newCards = missingCards.map((card) => ({
-    card,
-    visible: true,
-  }))
-  normalizedOverviewCardOrder = [...normalizedOverviewCardOrder, ...newCards]
+  for (const card of missingCards) {
+    const item = { card, visible: true }
+
+    if (card === OVERVIEW_CARD.EarthGlobeCard) {
+      const topologyIndex = normalizedOverviewCardOrder.findIndex(
+        ({ card }) => card === OVERVIEW_CARD.TopologyCharts,
+      )
+      normalizedOverviewCardOrder.splice(
+        topologyIndex === -1 ? normalizedOverviewCardOrder.length : topologyIndex,
+        0,
+        item,
+      )
+    } else {
+      normalizedOverviewCardOrder.push(item)
+    }
+  }
 }
 
 const ensuredOverviewCardOrder = ensureFlightRouteOverviewCard(normalizedOverviewCardOrder)
@@ -235,6 +251,12 @@ const ensuredOverviewCardOrder = ensureFlightRouteOverviewCard(normalizedOvervie
 if (JSON.stringify(ensuredOverviewCardOrder) !== JSON.stringify(overviewCardOrder.value)) {
   overviewCardOrder.value = ensuredOverviewCardOrder
 }
+
+export const earthOriginSource = useStorage<'global' | 'china'>(
+  'config/earth-origin-source',
+  'china',
+)
+export const earthVisualMode = useStorage<'flat' | 'space'>('config/earth-visual-mode', 'flat')
 
 // proxies
 export const collapseGroupMap = useStorage<Record<string, boolean>>('cache/collapse-group-map', {})
@@ -358,9 +380,17 @@ export const sourceIPLabelList = useStorage<SourceIPLabel[]>('config/source-ip-l
 export const displayNowNodeInRule = useStorage('config/display-now-node-in-rule', true)
 export const displayLatencyInRule = useStorage('config/display-latency-in-rule', true)
 export const disconnectOnRuleDisable = useStorage('config/disconnect-on-rule-disable', true)
+export const ruleDisplayStyle = useStorage<LIST_DISPLAY_STYLE>(
+  'config/rule-display-style',
+  LIST_DISPLAY_STYLE.CARD,
+)
 
 // logs
 export const logRetentionLimit = useStorage<number>('config/log-retention-limit', 1000)
+export const logDisplayStyle = useStorage<LIST_DISPLAY_STYLE>(
+  'config/log-display-style',
+  LIST_DISPLAY_STYLE.CARD,
+)
 export const logSearchHistory = useStorage<string[]>('cache/log-search-history', [])
 
 // settings visibility
