@@ -257,6 +257,10 @@ export const earthOriginSource = useStorage<'global' | 'china'>(
   'china',
 )
 export const earthVisualMode = useStorage<'flat' | 'space'>('config/earth-visual-mode', 'flat')
+export const topologyApplyConnectionFilter = useStorage(
+  'config/topology-apply-connection-filter',
+  true,
+)
 
 // proxies
 export const collapseGroupMap = useStorage<Record<string, boolean>>('cache/collapse-group-map', {})
