@@ -307,6 +307,7 @@
 <script setup lang="ts">
 import { getIPFromIpipnetAPI, getIPFromIpsbAPI } from '@/api/geoip'
 import { ipForChina, ipForGlobal } from '@/composables/overview'
+import { themeColorScheme } from '@/helper/theme'
 import { prettyBytesHelper } from '@/helper/utils'
 import { activeConnections } from '@/store/connections'
 import { earthOriginSource, earthVisualMode, language, theme } from '@/store/settings'
@@ -429,12 +430,6 @@ const tooltipStyle = computed<CSSProperties>(() => ({
   left: `${Math.min(window.innerWidth - 190, tooltipPosition.value.x + 12)}px`,
   top: `${Math.min(window.innerHeight - 100, tooltipPosition.value.y + 12)}px`,
 }))
-
-const getEarthColorScheme = (): 'dark' | 'light' => {
-  const colorScheme = getComputedStyle(document.body).getPropertyValue('color-scheme').trim()
-
-  return colorScheme.split(/\s+/).includes('dark') ? 'dark' : 'light'
-}
 
 const postWorker = (message: GeoWorkerRequest) => worker?.postMessage(message)
 
@@ -646,7 +641,7 @@ watch(
   theme,
   async () => {
     await nextTick()
-    renderer.value?.setColorScheme(getEarthColorScheme())
+    renderer.value?.setColorScheme(themeColorScheme.value)
   },
   { flush: 'post' },
 )
@@ -668,7 +663,7 @@ const initialize = async () => {
     const createdRenderer = await createEarthRenderer(canvasRef.value, {
       reducedMotion: reducedMotion.value,
       visualMode: earthVisualMode.value,
-      colorScheme: getEarthColorScheme(),
+      colorScheme: themeColorScheme.value,
       onEndpointHover: handleEndpointHover,
     })
 
