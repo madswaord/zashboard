@@ -69,8 +69,8 @@
         <div
           class="bg-base-200/30 relative w-full overflow-hidden rounded-xl"
           :class="isFullScreen ? 'mt-2 min-h-0 flex-1' : 'mt-4 h-96'"
+          data-page-swipe-ignore
           @mousemove.stop
-          @touchmove.stop
         >
           <div
             class="relative"
