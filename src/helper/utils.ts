@@ -11,7 +11,9 @@ export const isPWA = (() => {
 })()
 
 export const prettyBytesHelper = (bytes: number, opts?: Options) => {
-  return prettyBytes(bytes, {
+  // prettyBytes 对 NaN / Infinity 是抛错的。格式化函数几乎全在渲染函数里调用,
+  // 一个脏字段抛出去就会毁掉整棵 vnode 树(而不只是这一格),故就地兜住。
+  return prettyBytes(Number.isFinite(bytes) ? bytes : 0, {
     binary: false,
     ...opts,
   })

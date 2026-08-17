@@ -1,6 +1,4 @@
 import { renderRoutes } from '@/helper'
-import { showNotification } from '@/helper/notification'
-import { getLabelFromBackend } from '@/helper/utils'
 import { isSidebarCollapsed, keyboardShortcuts, manageHiddenGroup } from '@/store/settings'
 import { activeBackend, switchActiveBackend, toggleBackendSettingsDialog } from '@/store/setup'
 import { computed, onMounted, onUnmounted } from 'vue'
@@ -234,16 +232,8 @@ export const useKeyboard = () => {
 
       event.preventDefault()
       const direction = action === KEYBOARD_SHORTCUT_ACTION.BACKEND_NEXT ? 1 : -1
-      const backend = switchActiveBackend(direction)
-      if (backend) {
-        showNotification({
-          content: 'backendSwitchTo',
-          params: {
-            backend: getLabelFromBackend(backend),
-          },
-          type: 'alert-success',
-        })
-      }
+      // 切到哪个后端、连不连得上,由 BackendSwitchToast 统一提示。
+      switchActiveBackend(direction)
       return
     }
 

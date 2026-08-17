@@ -379,6 +379,7 @@ export const connectionCardLines = useStorage<CONNECTIONS_TABLE_ACCESSOR_KEY[][]
 )
 
 export const sourceIPLabelList = useStorage<SourceIPLabel[]>('config/source-ip-label-list', [])
+export const resolveClientHostname = useStorage('config/resolve-client-hostname', false)
 
 // rules
 export const displayNowNodeInRule = useStorage('config/display-now-node-in-rule', true)

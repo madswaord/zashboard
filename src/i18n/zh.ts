@@ -284,6 +284,7 @@ const zh: LANG_MESSAGE = {
   truncateProxyName: '截断节点名称',
   disableProxiesPageTextSelect: '禁用代理页文字选中',
   sourceIPLabels: '源IP标签',
+  resolveClientHostname: '反向解析源 IP 主机名',
   proxyPreviewType: '节点预览类型',
   auto: '自动',
   dots: '点',
@@ -326,7 +327,10 @@ const zh: LANG_MESSAGE = {
   DNSQuery: 'DNS 查询',
   currentBackendUnavailable: '当前后端不可用，尝试切换到其他后端?',
   confirm: '确定',
-  backendSwitchTo: '已切换后端为{backend}',
+  backendSwitched: '已切换后端',
+  backendConnecting: '正在连接...',
+  backendReachable: '连接正常',
+  backendUnreachable: '连接失败',
 
   // Backend settings
   ipv6Test: 'IPv6 测试',

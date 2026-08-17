@@ -106,17 +106,10 @@ import SideBar from '@/components/sidebar/SideBar.vue'
 import { dockTop } from '@/composables/paddingViews'
 import { checkUIUpdate } from '@/assembly/version'
 import { useSwipeRouter } from '@/composables/swipe'
-import { PROXY_TAB_TYPE, ROUTE_ICON_MAP, RULE_TAB_TYPE } from '@/constant'
+import { ROUTE_ICON_MAP } from '@/constant'
 import { renderRoutes } from '@/helper'
-import { showNotification } from '@/helper/notification'
-import { getLabelFromBackend, isMiddleScreen } from '@/helper/utils'
-import { fetchConfigs } from '@/assembly/config'
-import { initConnections, stopConnections } from '@/store/connections'
-import { initLogs, stopLogs } from '@/store/logs'
-import { initSatistic, stopSatistic } from '@/store/overview'
-import { fetchProxies, resetProxies } from '@/assembly/proxies'
-import { proxiesTabShow } from '@/assembly/proxies'
-import { fetchRules, rulesTabShow } from '@/assembly/rules'
+import { isMiddleScreen } from '@/helper/utils'
+import { fetchProxies } from '@/assembly/proxies'
 import { isSidebarCollapsed } from '@/store/settings'
 import { activeBackend, activeUuid, backendList } from '@/store/setup'
 import type { Backend } from '@/types'
@@ -159,32 +152,6 @@ watch(
   { immediate: true },
 )
 
-watch(
-  activeUuid,
-  async () => {
-    await resetProxies()
-    if (!activeUuid.value) {
-      // 后端被清空(登出 / 401 / 新增后端)时关闭常驻流,
-      // 否则它们会以无主状态留在 Setup 页继续运行并无限重连。
-      stopConnections()
-      stopLogs()
-      stopSatistic()
-      return
-    }
-    rulesTabShow.value = RULE_TAB_TYPE.RULES
-    proxiesTabShow.value = PROXY_TAB_TYPE.PROXIES
-    fetchConfigs()
-    fetchProxies()
-    fetchRules()
-    initConnections()
-    initLogs()
-    initSatistic()
-  },
-  {
-    immediate: true,
-  },
-)
-
 const autoSwitchBackendDialog = ref(false)
 
 const autoSwitchBackend = async () => {
@@ -207,14 +174,8 @@ const autoSwitchBackend = async () => {
   )
 
   if (avaliable) {
+    // 切换本身的提示(含连通性)由 BackendSwitchToast 统一给出,这里不再另发通知。
     activeUuid.value = avaliable.uuid
-    showNotification({
-      content: 'backendSwitchTo',
-      params: {
-        backend: getLabelFromBackend(avaliable),
-      },
-      type: 'alert-success',
-    })
   }
 }
 

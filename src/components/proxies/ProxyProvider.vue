@@ -73,6 +73,7 @@
 import { proxyProviderHealthCheckAPI, updateProxyProviderAPI } from '@/assembly/proxies'
 import { useBounceOnVisible } from '@/composables/bouncein'
 import { useRenderProxyList } from '@/composables/renderProxies'
+import { notifyRequestError } from '@/helper/requestError'
 import { fromNow, prettyBytesHelper } from '@/helper/utils'
 import { fetchProxies } from '@/assembly/proxies'
 import { proxyProviederList } from '@/assembly/proxies'
@@ -90,8 +91,8 @@ const props = defineProps<{
   name: string
 }>()
 
-const proxyProvider = computed(
-  () => proxyProviederList.value.find((group) => group.name === props.name)!,
+const proxyProvider = computed(() =>
+  proxyProviederList.value.find((group) => group.name === props.name)!,
 )
 const allProxies = computed(() => proxyProvider.value.proxies.map((node) => node.name) ?? [])
 const { renderProxies, proxiesCount } = useRenderProxyList(allProxies)
@@ -146,8 +147,9 @@ const healthCheckClickHandler = async () => {
   try {
     await proxyProviderHealthCheckAPI(props.name)
     await fetchProxies()
-    isHealthChecking.value = false
-  } catch {
+  } catch (e) {
+    notifyRequestError(e)
+  } finally {
     isHealthChecking.value = false
   }
 }
@@ -159,8 +161,9 @@ const updateProviderClickHandler = async () => {
   try {
     await updateProxyProviderAPI(props.name)
     await fetchProxies()
-    isUpdating.value = false
-  } catch {
+  } catch (e) {
+    notifyRequestError(e)
+  } finally {
     isUpdating.value = false
   }
 }

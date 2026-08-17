@@ -206,6 +206,7 @@ import { useIsSettingVisible } from '@/composables/settings'
 import { GENERAL_ITEM_KEYS } from '@/config/settingsItems'
 import { IP_INFO_API } from '@/constant'
 import { handlerUpgradeSuccess } from '@/helper'
+import { notifyRequestError } from '@/helper/requestError'
 import { useTooltip } from '@/helper/tooltip'
 import { isMiddleScreen } from '@/helper/utils'
 import { twMerge } from 'tailwind-merge'
@@ -250,12 +251,13 @@ const handlerClickUpgradeUI = async () => {
   isUIUpgrading.value = true
   try {
     await upgradeUIAPI()
-    isUIUpgrading.value = false
     handlerUpgradeSuccess()
     setTimeout(() => {
       window.location.reload()
     }, 1000)
-  } catch {
+  } catch (e) {
+    notifyRequestError(e)
+  } finally {
     isUIUpgrading.value = false
   }
 }

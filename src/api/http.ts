@@ -16,8 +16,13 @@ axios.interceptors.request.use((config) => {
   return config
 })
 
-const ignoreNotificationUrls = ['/delay', '/healthcheck', '/weights', '/storage/zashboard']
-
+// 响应拦截器只做「401 → 退回 Setup 页」这一件事:它改变的是应用状态(清空当前后端
+// 并跳转),任何请求打到 401 都必须如此,不是「要不要提示用户」的问题。
+//
+// 其余错误一律原样抛出,不在这里弹提示 —— 提示该由发起请求的业务层用 try-catch
+// 决定(见 helper/requestError.ts):只有用户手动触发的动作才打扰用户,后台
+// 自动拉取失败保持静默。以前靠 url 黑名单区分二者,加一个端点就得改一次名单,
+// 而且拦截器根本不知道这次请求是谁发的、为什么发。
 axios.interceptors.response.use(
   null,
   async (
@@ -36,17 +41,8 @@ axios.interceptors.response.use(
       nextTick(() => {
         showNotification({ content: 'unauthorizedTip' })
       })
-    } else if (!ignoreNotificationUrls.some((url) => error.config?.url?.endsWith(url))) {
-      const errorMessage = error.response?.data?.message || error.message
-
-      showNotification({
-        key: errorMessage,
-        content: `${decodeURIComponent(error.config?.url || '')} \n${errorMessage}`,
-        type: 'alert-error',
-      })
-      return Promise.reject(error)
     }
 
-    return error
+    return Promise.reject(error)
   },
 )

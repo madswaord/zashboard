@@ -283,6 +283,7 @@ const en = {
   truncateProxyName: 'Truncate proxy name',
   disableProxiesPageTextSelect: 'Disable text selection on proxies page',
   sourceIPLabels: 'Source IP labels',
+  resolveClientHostname: 'Resolve source IP hostnames',
   proxyPreviewType: 'Proxy preview type',
   auto: 'Auto',
   dots: 'Dots',
@@ -326,7 +327,10 @@ const en = {
   currentBackendUnavailable:
     'The current backend is unavailable. Would you like to switch to another backend?',
   confirm: 'Confirm',
-  backendSwitchTo: 'Switched backend to {backend}',
+  backendSwitched: 'Backend switched',
+  backendConnecting: 'Connecting...',
+  backendReachable: 'Connected',
+  backendUnreachable: 'Connection failed',
 
   // Backend settings
   ipv6Test: 'IPv6 test',

@@ -81,12 +81,26 @@
           </option>
         </select>
       </SettingItem>
+      <SettingItem
+        :setting-key="k.resolveClientHostname"
+        :when="can('dnsQuery')"
+      >
+        <div class="setting-item-label">
+          {{ $t('resolveClientHostname') }}
+        </div>
+        <input
+          type="checkbox"
+          v-model="resolveClientHostname"
+          class="toggle"
+        />
+      </SettingItem>
       <SourceIPLabels :setting-key="k.sourceIPLabels" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { can } from '@/assembly/backend'
 import SourceIPLabels from '@/components/settings/connections/SourceIPLabels.vue'
 import SettingItem from '@/components/settings/SettingItem.vue'
 import { useHasAnyVisibleSetting } from '@/composables/settings'
@@ -102,6 +116,7 @@ import {
   connectionDisplayStyle,
   isConnectionCard,
   proxyChainDirection,
+  resolveClientHostname,
   tableSize,
   tableWidthMode,
 } from '@/store/settings'

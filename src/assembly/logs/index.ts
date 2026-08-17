@@ -42,8 +42,7 @@ const backend = () => (channel.value === Channel.Singbox ? singbox : clash)
 let cancel: (() => void) | undefined
 
 export const initLogs = () => {
-  cancel?.()
-  logs.value = []
+  stopLogs()
 
   const accumulator = createLogsAccumulator(logs, () => isPaused.value)
   const subscription = backend().subscribeLogs({ level: logLevel.value }, accumulator.push)
@@ -54,7 +53,11 @@ export const initLogs = () => {
   }
 }
 
+// 结束流时一并丢掉日志。日志形态在累加器里已经归一化,不会像连接那样把渲染打崩
+// (见 store/connections),但把上一个后端的日志留在屏幕上同样是错的 —— 新后端连不上时,
+// 它们会一直冒充新后端的日志。
 export const stopLogs = () => {
   cancel?.()
   cancel = undefined
+  logs.value = []
 }

@@ -284,6 +284,7 @@ const zhTW: LANG_MESSAGE = {
   truncateProxyName: '截斷節點名稱',
   disableProxiesPageTextSelect: '禁用代理頁文字選取',
   sourceIPLabels: '源IP標籤',
+  resolveClientHostname: '反向解析來源 IP 主機名稱',
   proxyPreviewType: '節點預覽類型',
   auto: '自動',
   dots: '點',
@@ -326,7 +327,10 @@ const zhTW: LANG_MESSAGE = {
   DNSQuery: 'DNS 查詢',
   currentBackendUnavailable: '當前後端不可用，嘗試切換到其他後端?',
   confirm: '確定',
-  backendSwitchTo: '已切換後端為{backend}',
+  backendSwitched: '已切換後端',
+  backendConnecting: '正在連線...',
+  backendReachable: '連線正常',
+  backendUnreachable: '連線失敗',
 
   // Backend settings
   ipv6Test: 'IPv6 測試',

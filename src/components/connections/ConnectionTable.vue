@@ -227,6 +227,7 @@ import {
 } from '@/helper'
 import { backgroundImage } from '@/helper/indexeddb'
 import { showNotification } from '@/helper/notification'
+import { notifyRequestError } from '@/helper/requestError'
 import {
   connectionFilter,
   connectionTabShow,
@@ -335,7 +336,7 @@ const columns: ColumnDef<Connection>[] = [
             const connection = row.original
 
             e.stopPropagation()
-            disconnectByIdAPI(connection.id)
+            disconnectByIdAPI(connection.id).catch(notifyRequestError)
           },
         },
         [
@@ -354,7 +355,7 @@ const columns: ColumnDef<Connection>[] = [
               const connection = row.original
 
               e.stopPropagation()
-              blockConnectionByIdAPI(connection.id)
+              blockConnectionByIdAPI(connection.id).catch(notifyRequestError)
             },
           },
           [

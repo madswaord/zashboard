@@ -285,6 +285,7 @@ const ru: LANG_MESSAGE = {
   truncateProxyName: 'Усечение имени прокси',
   disableProxiesPageTextSelect: 'Запретить выделение текста на странице прокси',
   sourceIPLabels: 'Метки исходного IP',
+  resolveClientHostname: 'Разрешать имена исходных IP',
   proxyPreviewType: 'Тип предварительного просмотра прокси',
   auto: 'Авто',
   dots: 'Точки',
@@ -328,7 +329,10 @@ const ru: LANG_MESSAGE = {
   currentBackendUnavailable:
     'Текущий бэкенд недоступен. Попробуйте переключиться на другой бэкенд?',
   confirm: 'Подтвердить',
-  backendSwitchTo: 'Бэкенд переключен на {backend}',
+  backendSwitched: 'Бэкенд переключён',
+  backendConnecting: 'Подключение...',
+  backendReachable: 'Подключено',
+  backendUnreachable: 'Ошибка подключения',
 
   // Backend settings
   ipv6Test: 'IPv6-тест',

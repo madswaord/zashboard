@@ -1,6 +1,10 @@
 <script setup lang="ts">
+// 后端会话(内核探测 + 首屏数据 + 常驻流)自己跟着 activeBackend 走,
+// 这里只需保证模块被加载,不依赖任何页面挂载。
+import './assembly/session'
 import { computed, onMounted, ref, type Ref, watch } from 'vue'
 import { RouterView } from 'vue-router'
+import BackendSwitchToast from './components/common/BackendSwitchToast.vue'
 import ConfirmDialogHost from './components/common/ConfirmDialogHost.vue'
 import { useKeyboard } from './composables/keyboard'
 import { EMOJIS, FONTS } from './constant'
@@ -214,6 +218,7 @@ useKeyboard()
   >
     <RouterView />
     <ConfirmDialogHost />
+    <BackendSwitchToast />
     <div
       ref="toast"
       class="toast-sm toast toast-end toast-top z-[100000] max-w-80 text-sm md:max-w-96 md:translate-y-8"
