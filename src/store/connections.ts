@@ -17,8 +17,9 @@ import {
   getNetworkTypeFromConnection,
 } from '@/helper'
 import { toSearchRegex } from '@/helper/search'
+import { useStorage } from '@/helper/storage'
 import type { Connection } from '@/types'
-import { useStorage, watchOnce } from '@vueuse/core'
+import { watchOnce } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { initAggregatedDataMap, saveConnectionHistory } from './connHistory'

@@ -4,7 +4,12 @@
 import './assembly/session'
 import { computed, onMounted, ref, type Ref, watch } from 'vue'
 import { RouterView } from 'vue-router'
+import BackendConnectionError from './components/common/BackendConnectionError.vue'
 import BackendSwitchToast from './components/common/BackendSwitchToast.vue'
+import BackendManager from './components/settings/backend/BackendManager.vue'
+import UpdateConfigModal from './components/settings/backend/UpdateConfigModal.vue'
+import UpgradeCoreModal from './components/settings/backend/UpgradeCoreModal.vue'
+import { showUpdateConfigModal, showUpgradeCoreModal } from './composables/backendActions'
 import ConfirmDialogHost from './components/common/ConfirmDialogHost.vue'
 import { useKeyboard } from './composables/keyboard'
 import { EMOJIS, FONTS } from './constant'
@@ -25,7 +30,7 @@ import {
   font,
   theme,
 } from './store/settings'
-import { activeUuid, backendList } from './store/setup'
+import { backendList, setActiveBackend } from './store/setup'
 import type { Backend } from './types'
 
 const app = ref<HTMLElement>()
@@ -167,7 +172,7 @@ const autoSwitchToURLBackendIfExists = () => {
   if (backend) {
     for (const b of backendList.value) {
       if (isSameBackend(b, backend)) {
-        activeUuid.value = b.uuid
+        setActiveBackend(b.uuid)
         return
       }
     }
@@ -217,11 +222,20 @@ useKeyboard()
     :style="[backgroundImage, { height: 'var(--app-height, 100dvh)' }]"
   >
     <RouterView />
-    <ConfirmDialogHost />
     <BackendSwitchToast />
+    <BackendConnectionError />
+    <BackendManager />
+    <!-- 后端维护动作的弹窗:侧边栏菜单和设置页都会拉起,挂在这里两处入口才都有效。 -->
+    <UpgradeCoreModal v-model="showUpgradeCoreModal" />
+    <UpdateConfigModal v-model="showUpdateConfigModal" />
+    <!--
+      确认弹窗排在所有弹窗之后:它们都 teleport 到 #app-content 且同一层 z-index,
+      谁后插进 DOM 谁在上面。升级内核的确认是从弹窗里拉起的,排前面就会被压在底下。
+    -->
+    <ConfirmDialogHost />
     <div
       ref="toast"
-      class="toast-sm toast toast-end toast-top z-[100000] max-w-80 text-sm md:max-w-96 md:translate-y-8"
+      class="app-toast-region"
     />
   </div>
 </template>

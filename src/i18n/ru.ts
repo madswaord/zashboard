@@ -17,7 +17,6 @@ const ru: LANG_MESSAGE = {
   backendType: 'Тип бэкенда',
   clashApi: 'Clash API',
   singboxApi: 'sing-box API',
-  singboxConnectionFailed: 'Не удалось подключиться к API sing-box',
   skip: 'Пропустить',
   // Tools
   networkQuality: 'Качество сети',
@@ -104,6 +103,18 @@ const ru: LANG_MESSAGE = {
   fontFamily: 'Шрифт',
   fontSize: 'Размер шрифта',
   defaultFont: 'По умолчанию',
+
+  // Taildrop
+  taildropSendFiles: 'Отправить файлы',
+  taildropSending: 'Отправка',
+  taildropReceiving: 'Получение',
+  taildropFiles: 'Полученные файлы',
+  taildropEmpty: 'Нет файлов',
+  taildropTo: 'Кому: {name}',
+  taildropFrom: 'От: {name}',
+  taildropFileCount: 'Файлов: {count}',
+  taildropDropHint: 'Перетащите файлы сюда или нажмите для выбора',
+  deleteAll: 'Удалить все',
 
   // USB/IP
   usbip: 'USB/IP',
@@ -259,6 +270,8 @@ const ru: LANG_MESSAGE = {
   updated: 'Обновлено',
   upgradeDashboard: 'Обновить панель до новой версии',
   reloadConfigs: 'Перезагрузить конфигурации',
+  reloadConfigsConfirm:
+    'Перезагрузить конфигурацию сейчас? Существующие соединения могут быть прерваны.',
   updateConfigs: 'Обновить конфигурации',
   updateConfigsSuccess: 'Конфигурации успешно обновлены',
   configFilePath: 'Путь к файлу конфигурации',
@@ -279,6 +292,8 @@ const ru: LANG_MESSAGE = {
   backend: 'Бэкенд',
   tunMode: 'Режим Tun',
   upgradeCore: 'Обновить ядро до новой версии',
+  upgradeCoreConfirm:
+    'Обновить ядро сейчас? Ядро будет перезапущено, работа прокси ненадолго прервётся.',
   upgradeToRelease: 'Обновить ядро до Release',
   upgradeToAlpha: 'Обновить ядро до Alpha',
   updateGeoDatabase: 'Обновить GEO',
@@ -319,6 +334,8 @@ const ru: LANG_MESSAGE = {
   emoji: 'Emoji',
   unauthorizedTip: 'Не авторизован, пожалуйста, войдите снова.',
   restartCore: 'Перезапустить ядро',
+  restartCoreConfirm:
+    'Перезапустить ядро сейчас? Работа прокси ненадолго прервётся, существующие соединения будут разорваны.',
   checkCoreUpgrade: 'Проверить доступность обновления ядра',
   autoUpgradeDashboard: 'Автоматически обновлять панель до новой версии',
   autoUpgradeCore: 'Автоматически обновлять ядро до новой версии',
@@ -326,13 +343,28 @@ const ru: LANG_MESSAGE = {
   secondaryPathTip: 'Если присутствует, начните с "/", в противном случае оставьте пустым.',
   logRetentionLimit: 'Лимит хранения журнала',
   DNSQuery: 'DNS-запрос',
-  currentBackendUnavailable:
-    'Текущий бэкенд недоступен. Попробуйте переключиться на другой бэкенд?',
   confirm: 'Подтвердить',
   backendSwitched: 'Бэкенд переключён',
   backendConnecting: 'Подключение...',
   backendReachable: 'Подключено',
   backendUnreachable: 'Ошибка подключения',
+  switchToAnotherBackend: 'Переключиться на другой бэкенд',
+  autoSwitchBackend: 'Переключиться на первый доступный бэкенд',
+  noReachableBackend: 'Ни один из других бэкендов недоступен.',
+
+  // Connection diagnosis
+  diagnosisUnauthorized: 'Неверный пароль: бэкенд отклонил учётные данные.',
+  diagnosisTimeout: 'Бэкенд не ответил вовремя.',
+  diagnosisBadEndpoint: 'адрес доступен, но это не тот API, либо путь указан неверно.',
+  diagnosisOffline: 'Браузер офлайн; проверьте сетевое подключение.',
+  diagnosisCorsBlocked:
+    'Бэкенд доступен, но браузер заблокировал ответ: бэкенд не разрешает этот источник (CORS). Задайте external-controller-cors в конфигурации ядра.',
+  diagnosisMixedContent:
+    'Браузер заблокировал запрос: HTTPS-страница не может обращаться к HTTP-бэкенду. Откройте панель по HTTP или настройте HTTPS для API.',
+  diagnosisMixedContentOrUnreachable:
+    'Бэкенд недоступен — либо он работает, но браузер запретил HTTPS-странице обращаться к HTTP-бэкенду; попробуйте открыть панель по HTTP.',
+  diagnosisUnreachable:
+    'Бэкенд недоступен; проверьте правильность адреса и порта, а также запущено ли ядро.',
 
   // Backend settings
   ipv6Test: 'IPv6-тест',
@@ -439,7 +471,6 @@ const ru: LANG_MESSAGE = {
   toggleSidebar: 'Переключить боковую панель',
   switchToPreviousBackend: 'Переключиться на предыдущий бэкенд',
   switchToNextBackend: 'Переключиться на следующий бэкенд',
-  openBackendSettings: 'Открыть настройки бэкенда',
   keyboardShortcutsConflict:
     'Обнаружены повторяющиеся горячие клавиши: {keys}. Сработает только первое совпадение.',
   resetKeyboardShortcuts: 'Сбросить горячие клавиши',
@@ -489,7 +520,9 @@ const ru: LANG_MESSAGE = {
   topologyCollapse: 'Восстановить размер топологии',
   editBackend: 'Редактировать бэкенд',
   editBackendTitle: 'Редактировать конфигурацию бэкенда',
-  selectBackend: 'Выберите бэкенд',
+  addBackend: 'Добавить бэкенд',
+  manageBackends: 'Управление бэкендами',
+  noBackendYet: 'Бэкендов пока нет',
   backendConnectionFailed: 'Не удалось подключиться к бэкенду, проверьте конфигурацию',
   backendConfigSaved: 'Конфигурация бэкенда успешно сохранена',
   saveFailed: 'Не удалось сохранить',

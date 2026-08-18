@@ -61,10 +61,7 @@
       <ProxyPreview :nodes="renderProxies" />
     </template>
     <template v-slot:content>
-      <ProxiesContent
-        :name="name"
-        :render-proxies="renderProxies"
-      />
+      <ProxiesContent :render-proxies="renderProxies" />
     </template>
   </CollapseCard>
 </template>

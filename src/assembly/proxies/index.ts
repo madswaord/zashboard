@@ -4,9 +4,9 @@
 import { can, Channel, channel } from '@/assembly/backend'
 import { NOT_CONNECTED, PROXY_TAB_TYPE, PROXY_TYPE, TEST_URL } from '@/constant'
 import { notifyRequestError } from '@/helper/requestError'
+import { useStorage } from '@/helper/storage'
 import { groupTestUrls, independentLatencyTest, speedtestUrl } from '@/store/settings'
 import type { Proxy, ProxyProvider } from '@/types'
-import { useStorage } from '@vueuse/core'
 import { last } from 'lodash'
 import { computed, ref } from 'vue'
 
@@ -51,7 +51,7 @@ export const getLatencyByName = (proxyName: string, groupName?: string) => {
 }
 
 export const getHistoryByName = (proxyName: string, groupName?: string) => {
-  if (independentLatencyTest.value && can('independentLatency')) {
+  if (groupName && independentLatencyTest.value && can('independentLatency')) {
     const proxyNode = proxyMap.value[proxyName]
     const url = getTestUrl(groupName)
 

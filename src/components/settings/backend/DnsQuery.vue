@@ -80,9 +80,9 @@
 import { queryDNSAPI } from '@/assembly/config'
 import { getIPInfo, type IPInfo } from '@/api/geoip'
 import { notifyRequestError } from '@/helper/requestError'
+import { useStorage } from '@/helper/storage'
 import type { DNSQuery } from '@/types'
 import { MapPinIcon, ServerIcon } from '@heroicons/vue/24/outline'
-import { useStorage } from '@vueuse/core'
 import { reactive, ref } from 'vue'
 import TextInput from '../../common/TextInput.vue'
 

@@ -1,21 +1,14 @@
 <template>
-  <select
+  <SelectInput
     class="select select-sm"
     v-model="sourceIPFilter"
-  >
-    <option :value="null">{{ $t('all') }}</option>
-    <option
-      v-for="opt in sourceIPOpts"
-      :key="opt.value.join(',')"
-      :value="opt.value"
-    >
-      {{ opt.label }}
-    </option>
-  </select>
+    :options="[{ value: null, label: $t('all') }, ...sourceIPOpts]"
+  />
 </template>
 
 <script setup lang="ts">
 import { getConnectionSourceIP } from '@/helper'
+import SelectInput from '@/components/common/SelectInput.vue'
 import { reverseDNSRevision } from '@/helper/reverseDns'
 import { getIPLabelFromMap } from '@/helper/sourceip'
 import { connections, sourceIPFilter } from '@/store/connections'

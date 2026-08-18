@@ -27,6 +27,7 @@ import {
   TEST_URL,
   type THEME,
 } from '@/constant'
+import { useStorage } from '@/helper/storage'
 import { getMinCardWidth, isMiddleScreen, isPreferredDark } from '@/helper/utils'
 import {
   ensureFlightRouteOverviewCard,
@@ -35,7 +36,6 @@ import {
   type OverviewCardItem,
 } from '@/modules/flightroute/overview'
 import type { SourceIPLabel } from '@/types'
-import { useStorage } from '@vueuse/core'
 import { computed } from 'vue'
 
 export type OverviewCardKey = OVERVIEW_CARD | FlightRouteOverviewCard
@@ -110,8 +110,15 @@ const replaceLegacyTheme = (theme: string, defaultTheme: string) => {
   return defaultTheme
 }
 
-defaultTheme.value = replaceLegacyTheme(defaultTheme.value, 'light')
-darkTheme.value = replaceLegacyTheme(darkTheme.value, 'dark')
+// 仅在确实需要迁移时才写回,避免用户从未改过主题也被写入 storage
+const migratedDefaultTheme = replaceLegacyTheme(defaultTheme.value, 'light')
+if (migratedDefaultTheme !== defaultTheme.value) {
+  defaultTheme.value = migratedDefaultTheme
+}
+const migratedDarkTheme = replaceLegacyTheme(darkTheme.value, 'dark')
+if (migratedDarkTheme !== darkTheme.value) {
+  darkTheme.value = migratedDarkTheme
+}
 
 export const language = useStorage<LANG>(
   'config/language',

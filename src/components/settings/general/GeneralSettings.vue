@@ -74,18 +74,11 @@
             @mouseenter="showTip($event, $t('IPInfoAPITip'))"
           />
         </div>
-        <select
+        <SelectInput
           class="select select-sm min-w-24"
           v-model="IPInfoAPI"
-        >
-          <option
-            v-for="opt in Object.values(IP_INFO_API)"
-            :key="opt"
-            :value="opt"
-          >
-            {{ opt }}
-          </option>
-        </select>
+          :options="Object.values(IP_INFO_API).map((value) => ({ value, label: value }))"
+        />
       </SettingItem>
       <SettingItem :setting-key="k.geoipCountryDatabaseURL">
         <div class="setting-item-label">
@@ -198,6 +191,7 @@
 import { can, showDisplayAllFeatures } from '@/assembly/backend'
 import { upgradeUIAPI } from '@/assembly/version'
 import DashboardSettings from '@/components/common/DashboardSettings.vue'
+import SelectInput from '@/components/common/SelectInput.vue'
 import KeyboardShortcutsSettings from '@/components/settings/general/KeyboardShortcutsSettings.vue'
 import LanguageSelect from '@/components/settings/general/LanguageSelect.vue'
 import SettingItem from '@/components/settings/SettingItem.vue'

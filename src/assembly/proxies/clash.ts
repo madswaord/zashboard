@@ -14,6 +14,7 @@ import { GLOBAL, IPV6_TEST_URL, NOT_CONNECTED, PROXY_TYPE, SPEEDTEST_MODE } from
 import { getConnectionChains, isProxyGroup } from '@/helper'
 import { showNotification } from '@/helper/notification'
 import { notifyRequestError } from '@/helper/requestError'
+import { i18n } from '@/i18n'
 import { activeConnections } from '@/store/connections'
 import {
   automaticDisconnection,
@@ -207,8 +208,10 @@ export const proxyLatencyTest = async (
   }
 }
 
-const setHistory = (proxyName: string, delay: number) => {
-  const history = getHistoryByName(proxyName)
+// 面板测速模式下没有 fetchProxies 兜底,延迟全靠这里的乐观写入刷新 UI,
+// 所以必须写进卡片实际读取的那个桶(独立延迟测试下是组 url 对应的 extra)。
+const setHistory = (proxyName: string, delay: number, groupName?: string) => {
+  const history = getHistoryByName(proxyName, groupName)
   const now = new Date()
 
   history.push({
@@ -226,10 +229,12 @@ const isLatencyTestable = (name: string) => {
   return !type || !untestableProxyTypes.has(type)
 }
 
+// tipName 只用于提示文案(可能是 i18n 的「全部」),groupName 才是延迟落桶用的真实组名。
 const testLatencyOneByOneWithTip = async (
-  proxyGroupName: string,
+  tipName: string,
   nodes: string[],
   url = speedtestUrlWithDefault.value,
+  groupName?: string,
 ) => {
   const total = nodes.length
   let testDone = 0
@@ -246,17 +251,17 @@ const testLatencyOneByOneWithTip = async (
             Math.min(2000, speedtestTimeout.value),
           )
 
-          setHistory(name, data.delay)
+          setHistory(name, data.delay, groupName)
         } catch {
           testFailed++
-          setHistory(name, NOT_CONNECTED)
+          setHistory(name, NOT_CONNECTED, groupName)
         } finally {
           testDone++
           showNotification({
             content: 'testFinishedTip',
-            key: TIP_KEY + proxyGroupName,
+            key: TIP_KEY + tipName,
             params: {
-              name: getNameForNotification(proxyGroupName, url),
+              name: getNameForNotification(tipName, url),
               total: total.toString(),
               number: testDone.toString(),
             },
@@ -267,11 +272,15 @@ const testLatencyOneByOneWithTip = async (
       }),
     ),
   )
+
+  // 逐个测速期间只有本地的乐观写入,结束后拉一次真实状态兜底(拉取失败不影响汇总提示)。
+  await fetchProxies().catch(() => {})
+
   showNotification({
     content: 'testFinishedResultTip',
-    key: TIP_KEY + proxyGroupName,
+    key: TIP_KEY + tipName,
     params: {
-      name: getNameForNotification(proxyGroupName, url),
+      name: getNameForNotification(tipName, url),
       total: total.toString(),
       success: `${total - testFailed}`,
       failed: `${testFailed}`,
@@ -296,7 +305,7 @@ export const proxyGroupLatencyTest = async (proxyGroupName: string) => {
       // 测速前的准备动作,失败也照常往下测
       deleteFixedProxyAPI(proxyGroupName).catch(() => {})
     }
-    return testLatencyOneByOneWithTip(proxyGroupName, all, url)
+    return testLatencyOneByOneWithTip(proxyGroupName, all, url, proxyGroupName)
   }
 
   const timeout = Math.max(5000, speedtestTimeout.value)
@@ -359,9 +368,11 @@ export const allProxiesLatencyTest = async () => {
     )
   }
 
-  const proxyNode = Object.keys(proxyMap.value).filter((proxy) => !isProxyGroup(proxy))
+  const proxyNode = Object.keys(proxyMap.value).filter(
+    (proxy) => !isProxyGroup(proxy) && isLatencyTestable(proxy),
+  )
 
-  return testLatencyOneByOneWithTip('all', proxyNode)
+  return testLatencyOneByOneWithTip(i18n.global.t('all'), proxyNode)
 }
 
 const getIPv6FromExtra = (proxy: Proxy) => {

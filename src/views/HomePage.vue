@@ -76,32 +76,12 @@
         </template>
       </div>
     </RouterView>
-
-    <DialogWrapper v-model="autoSwitchBackendDialog">
-      <div class="mb-2">
-        {{ $t('currentBackendUnavailable') }}
-      </div>
-      <div class="flex justify-end gap-2">
-        <button
-          class="btn btn-sm"
-          @click="autoSwitchBackendDialog = false"
-        >
-          {{ $t('cancel') }}
-        </button>
-        <button
-          class="btn btn-primary btn-sm"
-          @click="autoSwitchBackend"
-        >
-          {{ $t('confirm') }}
-        </button>
-      </div>
-    </DialogWrapper>
   </div>
 </template>
 
 <script setup lang="ts">
 import { isBackendAvailable } from '@/assembly/backend'
-import DialogWrapper from '@/components/common/DialogWrapper.vue'
+import { startBackendSession } from '@/assembly/session'
 import SideBar from '@/components/sidebar/SideBar.vue'
 import { dockTop } from '@/composables/paddingViews'
 import { checkUIUpdate } from '@/assembly/version'
@@ -111,8 +91,7 @@ import { renderRoutes } from '@/helper'
 import { isMiddleScreen } from '@/helper/utils'
 import { fetchProxies } from '@/assembly/proxies'
 import { isSidebarCollapsed } from '@/store/settings'
-import { activeBackend, activeUuid, backendList } from '@/store/setup'
-import type { Backend } from '@/types'
+import { activeBackend, activeUuid } from '@/store/setup'
 import { useDocumentVisibility, useElementBounding } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
@@ -152,59 +131,21 @@ watch(
   { immediate: true },
 )
 
-const autoSwitchBackendDialog = ref(false)
-
-const autoSwitchBackend = async () => {
-  const otherEnds = backendList.value.filter((end) => end.uuid !== activeUuid.value)
-
-  autoSwitchBackendDialog.value = false
-  const avaliable = await Promise.race<Backend>(
-    otherEnds.map((end) => {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          reject()
-        }, 10000)
-        isBackendAvailable(end).then((res) => {
-          if (res) {
-            resolve(end)
-          }
-        })
-      })
-    }),
-  )
-
-  if (avaliable) {
-    // 切换本身的提示(含连通性)由 BackendSwitchToast 统一给出,这里不再另发通知。
-    activeUuid.value = avaliable.uuid
-  }
-}
-
 const documentVisible = useDocumentVisibility()
 
+// 息屏 / 切走期间后端可能已经没了(睡眠、换网、内核重启)。回到前台先确认一次,
+// 连不上就重开会话 —— 探测失败会把 BackendConnectionError 顶出来,
+// 由它给出诊断、重试和切换后端,这里不再自己弹一个只能二选一的对话框。
 watch(
   documentVisible,
   async () => {
-    if (
-      !activeBackend.value ||
-      backendList.value.length < 2 ||
-      documentVisible.value !== 'visible'
-    ) {
-      return
-    }
-    try {
-      const activeBackendUuid = activeBackend.value.uuid
-      const isAvailable = await isBackendAvailable(activeBackend.value)
+    if (!activeBackend.value || documentVisible.value !== 'visible') return
 
-      if (activeBackendUuid !== activeUuid.value) {
-        return
-      }
+    const uuid = activeBackend.value.uuid
 
-      if (!isAvailable) {
-        autoSwitchBackendDialog.value = true
-      }
-    } catch {
-      autoSwitchBackendDialog.value = true
-    }
+    if (await isBackendAvailable(activeBackend.value)) return
+    // 探测期间用户可能已经自己切走了,别把新后端的会话也重开一遍。
+    if (uuid === activeUuid.value) startBackendSession()
   },
   {
     immediate: true,
